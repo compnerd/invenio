@@ -4,7 +4,7 @@ INCLUDES = -I src
 
 bin_PROGRAMS = src/invenio/invenio
 
-src_invenio_invenio_CFLAGS = $(GTK_CFLAGS)
+src_invenio_invenio_CFLAGS = $(GTK_CFLAGS) $(GDK_CFLAGS)
 src_invenio_invenio_LDADD = $(GTK_LIBS)
 src_invenio_invenio_SOURCES = src/invenio/invenio.c               \
 			      src/invenio/invenio-search-window.c \
