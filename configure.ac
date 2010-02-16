@@ -16,6 +16,14 @@ AC_PROG_CC_C_O
 AC_PROG_INSTALL
 dnl }}}
 
+dnl {{{ library checks
+GTK_REQUIRED=2.18
+
+PKG_CHECK_MODULES(GTK, [gtk+-2.0 >= $GTK_REQUIRED])
+AC_SUBST(GTK_CFLAGS)
+AC_SUBST(GTK_LIBS)
+dnl }}}
+
 dnl {{{ output
 AM_SILENT_RULES(yes)
 AC_OUTPUT(Makefile)

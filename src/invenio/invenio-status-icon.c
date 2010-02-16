@@ -28,19 +28,17 @@
  * OF SUCH DAMAGE.
  **/
 
-#include <stdlib.h>
-
 #include <gtk/gtk.h>
 
 #include "invenio-status-icon.h"
 
-int
-main (int argc, char **argv)
-{
-    gtk_init (&argc, &argv);
-    invenio_status_icon_init ();
-    gtk_main ();
+static GtkStatusIcon *icon;
 
-    return EXIT_SUCCESS;
+void
+invenio_status_icon_init (void)
+{
+    g_return_if_fail (! icon);
+
+    icon = gtk_status_icon_new_from_stock (GTK_STOCK_FIND);
 }
 
