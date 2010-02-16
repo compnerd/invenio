@@ -41,12 +41,14 @@
 
 typedef struct InvenioStatusIcon
 {
-    GtkStatusIcon parent;
+    GtkStatusIcon   parent;
+
+    GtkWidget       *context_menu;
 } InvenioStatusIcon;
 
 typedef struct InvenioStatusIconClass
 {
-    GtkStatusIconClass parent;
+    GtkStatusIconClass  parent;
 } InvenioStatusIconClass;
 
 G_DEFINE_TYPE (InvenioStatusIcon, invenio_status_icon, GTK_TYPE_STATUS_ICON);
@@ -65,12 +67,20 @@ status_icon_popup_menu (GtkStatusIcon   *icon,
                         guint            button,
                         guint32          activate_time)
 {
+    InvenioStatusIcon *instance = INVENIO_STATUS_ICON (icon);
+
+    gtk_menu_popup (GTK_MENU (instance->context_menu),
+                    NULL, NULL,
+                    gtk_status_icon_position_menu, icon,
+                    button, activate_time);
 }
 
 static void
 status_icon_dispose (GObject *object)
 {
     InvenioStatusIcon *icon = INVENIO_STATUS_ICON (icon);
+
+    g_object_unref (icon->context_menu);
 
     G_OBJECT_CLASS (invenio_status_icon_parent_class)->dispose (object);
 }
@@ -97,8 +107,43 @@ invenio_status_icon_class_init (InvenioStatusIconClass *klass)
 }
 
 static void
+status_icon_about (GtkMenuItem  *menu_item,
+                   gpointer      user_data)
+{
+    /* TODO Implement About Dialog */
+}
+
+static void
+status_icon_quit (GtkMenuItem   *menu_item,
+                  gpointer       user_data)
+{
+    gtk_main_quit ();
+}
+
+static void
+_create_context_menu (InvenioStatusIcon *icon)
+{
+    GtkWidget *item;
+
+    icon->context_menu = gtk_menu_new ();
+
+    /* About */
+    item = gtk_image_menu_item_new_from_stock (GTK_STOCK_ABOUT, NULL);
+    g_signal_connect (G_OBJECT (item), "activate", G_CALLBACK (status_icon_about), icon);
+    gtk_menu_shell_append (GTK_MENU_SHELL (icon->context_menu), item);
+
+    /* Quit */
+    item = gtk_image_menu_item_new_from_stock (GTK_STOCK_QUIT, NULL);
+    g_signal_connect (G_OBJECT (item), "activate", G_CALLBACK (status_icon_quit), icon);
+    gtk_menu_shell_append (GTK_MENU_SHELL (icon->context_menu), item);
+
+    gtk_widget_show_all (GTK_WIDGET (icon->context_menu));
+}
+
+static void
 invenio_status_icon_init (InvenioStatusIcon *icon)
 {
+    _create_context_menu (icon);
     gtk_status_icon_set_from_stock (GTK_STATUS_ICON (icon), GTK_STOCK_FIND);
 }
 
