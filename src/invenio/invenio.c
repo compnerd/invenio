@@ -38,7 +38,7 @@ int
 main (int argc, char **argv)
 {
     gtk_init (&argc, &argv);
-    invenio_status_icon_init ();
+    invenio_status_icon_initialise ();
     gtk_main ();
 
     return EXIT_SUCCESS;
