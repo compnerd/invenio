@@ -31,6 +31,7 @@
 #include <gtk/gtk.h>
 
 #include "invenio-status-icon.h"
+#include "invenio-search-window.h"
 
 #define INVENIO_TYPE_STATUS_ICON            (invenio_status_icon_get_type ())
 #define INVENIO_STATUS_ICON(o)              (G_TYPE_CHECK_INSTANCE_CAST ((o), INVENIO_TYPE_STATUS_ICON, InvenioStatusIcon))
@@ -41,9 +42,10 @@
 
 typedef struct InvenioStatusIcon
 {
-    GtkStatusIcon   parent;
+    GtkStatusIcon    parent;
 
     GtkWidget       *context_menu;
+    GtkWidget       *search_window;
 } InvenioStatusIcon;
 
 typedef struct InvenioStatusIconClass
@@ -60,6 +62,21 @@ static InvenioStatusIcon *icon;
 static void
 status_icon_activate (GtkStatusIcon *icon)
 {
+    InvenioStatusIcon *instance;
+    GtkWidget *menu, *window;
+    gboolean pushed_in;
+    gint x, y;
+
+    instance = INVENIO_STATUS_ICON (icon);
+
+    menu = gtk_menu_new ();
+    gtk_status_icon_position_menu (GTK_MENU (menu), &x, &y, &pushed_in, icon);
+
+    window = instance->search_window;
+    gtk_window_move (GTK_WINDOW (window), x, y);
+    gtk_widget_show (GTK_WIDGET (window));
+
+    g_object_ref_sink (menu);
 }
 
 static void
@@ -81,6 +98,7 @@ status_icon_dispose (GObject *object)
     InvenioStatusIcon *icon = INVENIO_STATUS_ICON (icon);
 
     g_object_unref (icon->context_menu);
+    g_object_unref (icon->search_window);
 
     G_OBJECT_CLASS (invenio_status_icon_parent_class)->dispose (object);
 }
@@ -144,6 +162,7 @@ static void
 invenio_status_icon_init (InvenioStatusIcon *icon)
 {
     _create_context_menu (icon);
+    icon->search_window = invenio_search_window_new ();
     gtk_status_icon_set_from_stock (GTK_STATUS_ICON (icon), GTK_STOCK_FIND);
 }
 
