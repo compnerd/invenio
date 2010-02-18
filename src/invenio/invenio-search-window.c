@@ -30,8 +30,13 @@
 
 #include <string.h>
 
+#include <glib/gprintf.h>
+
 #include <gdk/gdkkeysyms.h>
 
+#include "invenio-query.h"
+#include "invenio-category.h"
+#include "invenio-query-result.h"
 #include "invenio-search-window.h"
 
 #define INVENIO_SEARCH_WINDOW_GET_PRIVATE(o)    (G_TYPE_INSTANCE_GET_PRIVATE ((o), INVENIO_TYPE_SEARCH_WINDOW, InvenioSearchWindowPrivate))
@@ -110,8 +115,7 @@ _reset_search (InvenioSearchWindow *window)
     priv = INVENIO_SEARCH_WINDOW_GET_PRIVATE (window);
 
     gtk_entry_set_text (GTK_ENTRY (priv->entry), "");
-
-    /* TODO Clear Results */
+    gtk_list_store_clear (priv->results->model);
 }
 
 static gboolean
@@ -158,6 +162,151 @@ search_window_key_press (GtkWidget      *widget,
     g_assert_not_reached ();
 }
 
+static inline void
+_insert_result (GtkListStore                        *store,
+                GtkTreeIter                         *iter,
+                const InvenioCategory                category,
+                const InvenioQueryResult * const     result)
+{
+    gtk_list_store_set (GTK_LIST_STORE (store), iter,
+                        SEARCH_RESULT_COLUMN_CATEGORY, category,
+                        SEARCH_RESULT_COLUMN_ICON, NULL,
+                        SEARCH_RESULT_COLUMN_TITLE, invenio_query_result_get_title (result),
+                        SEARCH_RESULT_COLUMN_DESCRIPTION, invenio_query_result_get_description (result),
+                        SEARCH_RESULT_COLUMN_URI, invenio_query_result_get_uri (result),
+                        -1);
+}
+
+static void
+_update_results_for_category (InvenioSearchWindow   *window,
+                              InvenioCategory        category,
+                              const GSList          *results)
+{
+    const GSList *entry;
+    InvenioSearchWindowPrivate *priv;
+    InvenioCategory value;
+    GtkTreeIter iter;
+    gboolean valid;
+
+    priv = INVENIO_SEARCH_WINDOW_GET_PRIVATE (window);
+
+    valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (priv->results->model), &iter);
+
+    while (valid)
+    {
+        gtk_tree_model_get (GTK_TREE_MODEL (priv->results->model), &iter,
+                            SEARCH_RESULT_COLUMN_CATEGORY, &value, -1);
+
+        if (value == category)
+        {
+            for (entry = results; entry; entry = g_slist_next (entry))
+            {
+                _insert_result (priv->results->model, &iter, category, entry->data);
+
+                valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (priv->results->model), &iter);
+                if (! valid)
+                    break;
+
+                gtk_tree_model_get (GTK_TREE_MODEL (priv->results->model), &iter,
+                                    SEARCH_RESULT_COLUMN_CATEGORY, &value, -1);
+                if (value != category)
+                    break;
+            }
+
+            while ((entry = g_slist_next (entry)))
+            {
+                GtkTreeIter position;
+
+                if (valid)
+                    gtk_list_store_insert_before (GTK_LIST_STORE (priv->results->model), &position, &iter);
+                else
+                    gtk_list_store_append (GTK_LIST_STORE (priv->results->model), &position);
+
+                _insert_result (priv->results->model, &position, category, entry->data);
+            }
+
+            while (valid)
+            {
+                gtk_tree_model_get (GTK_TREE_MODEL (priv->results->model), &iter,
+                                    SEARCH_RESULT_COLUMN_CATEGORY, &value, -1);
+
+                if (value != category)
+                    break;
+
+                valid = gtk_list_store_remove (GTK_LIST_STORE (priv->results->model), &iter);
+            }
+
+            return;
+        }
+
+        valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (priv->results->model), &iter);
+    }
+
+    for (entry = results; entry; entry = g_slist_next (entry))
+    {
+        gtk_list_store_append (GTK_LIST_STORE (priv->results->model), &iter);
+        _insert_result (priv->results->model, &iter, category, entry->data);
+    }
+}
+
+static void
+_clear_results_for_category (InvenioSearchWindow    *window,
+                             InvenioCategory         category)
+{
+    InvenioSearchWindowPrivate *priv;
+    InvenioCategory value;
+    GtkTreeIter iter;
+    gboolean valid;
+
+    priv = INVENIO_SEARCH_WINDOW_GET_PRIVATE (window);
+
+    valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (priv->results->model), &iter);
+
+    while (valid)
+    {
+        gtk_tree_model_get (GTK_TREE_MODEL (priv->results->model), &iter,
+                            SEARCH_RESULT_COLUMN_CATEGORY, &value, -1);
+
+        if (value == category)
+            valid = gtk_list_store_remove (GTK_LIST_STORE (priv->results->model), &iter);
+        else
+            valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (priv->results->model), &iter);
+    }
+}
+
+static void
+search_window_update_results_for_query (InvenioQuery    *query,
+                                        GError          *error,
+                                        gpointer         user_data)
+{
+    const GSList *results;
+    InvenioSearchWindow *window;
+    InvenioSearchWindowPrivate *priv;
+
+    window = INVENIO_SEARCH_WINDOW (user_data);
+    priv = INVENIO_SEARCH_WINDOW_GET_PRIVATE (window);
+
+    if (error)
+    {
+        g_printerr ("failed to execute query for category: %s: %s\n",
+                    invenio_category_to_string (invenio_query_get_category (query)),
+                    error->message);
+        g_error_free (error);
+
+        goto out;
+    }
+
+    results = invenio_query_get_results (query);
+
+    if (results)
+        _update_results_for_category (window, invenio_query_get_category (query), results);
+    else
+        _clear_results_for_category (window, invenio_query_get_category (query));
+
+out:
+    invenio_query_free (query);
+}
+
 static void
 search_window_entry_changed (GtkEditable    *editable,
                              gpointer        user_data)
@@ -165,6 +314,7 @@ search_window_entry_changed (GtkEditable    *editable,
     const gchar *search;
     InvenioSearchWindow *window;
     InvenioSearchWindowPrivate *priv;
+    InvenioCategory category;
 
     window = INVENIO_SEARCH_WINDOW (user_data);
     priv = INVENIO_SEARCH_WINDOW_GET_PRIVATE (window);
@@ -175,15 +325,18 @@ search_window_entry_changed (GtkEditable    *editable,
     {
         gtk_entry_set_icon_from_stock (GTK_ENTRY (priv->entry),
                                        GTK_ENTRY_ICON_SECONDARY, NULL);
-        /* TODO Cancel Previous Search */
-        /* TODO Clear Store */
+        _reset_search (window);
         return;
     }
 
     gtk_entry_set_icon_from_stock (GTK_ENTRY (priv->entry),
                                    GTK_ENTRY_ICON_SECONDARY, GTK_STOCK_CLEAR);
 
-    /* TODO Perform Queries */
+    for (category = (InvenioCategory) 0; category != INVENIO_CATEGORIES; category++)
+    {
+        InvenioQuery *query = invenio_query_new (category, search);
+        invenio_query_execute_async (query, search_window_update_results_for_query, window);
+    }
 }
 
 static void
@@ -215,6 +368,40 @@ search_results_render_category_name (GtkTreeViewColumn  *tree_column,
                                      GtkTreeIter        *iter,
                                      gpointer            user_data)
 {
+    GtkTreePath *path;
+    InvenioSearchWindow *window;
+    InvenioSearchWindowPrivate *priv;
+    InvenioCategory category;
+    gboolean visible = TRUE;
+
+    window = INVENIO_SEARCH_WINDOW (user_data);
+    priv = INVENIO_SEARCH_WINDOW_GET_PRIVATE (window);
+
+    gtk_tree_model_get (GTK_TREE_MODEL (priv->results->model), iter,
+                        SEARCH_RESULT_COLUMN_CATEGORY, &category, -1);
+    path = gtk_tree_model_get_path (GTK_TREE_MODEL (priv->results->model), iter);
+
+    if (gtk_tree_path_prev (path))
+    {
+        GtkTreeIter entry;
+        InvenioCategory previous_category;
+
+        if (gtk_tree_model_get_iter (GTK_TREE_MODEL (priv->results->model), &entry, path))
+        {
+            gtk_tree_model_get (GTK_TREE_MODEL (priv->results->model), &entry,
+                                SEARCH_RESULT_COLUMN_CATEGORY, &previous_category, -1);
+
+            if (previous_category == category)
+                visible = FALSE;
+        }
+    }
+
+    g_object_set (cell,
+                  "text", invenio_category_to_string (category),
+                  "visible", visible,
+                  NULL);
+
+    gtk_tree_path_free (path);
 }
 
 static void
