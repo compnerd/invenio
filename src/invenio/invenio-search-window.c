@@ -41,6 +41,8 @@
 
 #define INVENIO_SEARCH_WINDOW_GET_PRIVATE(o)    (G_TYPE_INSTANCE_GET_PRIVATE ((o), INVENIO_TYPE_SEARCH_WINDOW, InvenioSearchWindowPrivate))
 
+#define INVENIO_SEARCH_WINDOW_WIDTH             (340)
+
 typedef enum SearchResultColumn
 {
     SEARCH_RESULT_COLUMN_CATEGORY,
@@ -417,8 +419,8 @@ static void
 invenio_search_window_init (InvenioSearchWindow *window)
 {
     InvenioSearchWindowPrivate *priv;
+    GtkWidget *hbox, *vbox, *label;
     GtkTreeViewColumn *column;
-    GtkWidget *hbox, *vbox;
     GtkCellRenderer *cell;
 
     priv = INVENIO_SEARCH_WINDOW_GET_PRIVATE (window);
@@ -426,6 +428,11 @@ invenio_search_window_init (InvenioSearchWindow *window)
     /* window settings */
     gtk_window_set_decorated (GTK_WINDOW (window), FALSE);
     gtk_window_set_skip_taskbar_hint (GTK_WINDOW (window), TRUE);
+
+    gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
+    gtk_widget_set_size_request (GTK_WIDGET (window),
+                                 INVENIO_SEARCH_WINDOW_WIDTH, -1);
+
     gtk_widget_set_events (GTK_WIDGET (window), GDK_FOCUS_CHANGE_MASK);
     g_signal_connect (G_OBJECT (window), "focus-out-event",
                       G_CALLBACK (search_window_focus_out), window);
@@ -439,10 +446,14 @@ invenio_search_window_init (InvenioSearchWindow *window)
     g_signal_connect (G_OBJECT (priv->entry), "icon-release",
                       G_CALLBACK (search_window_entry_icon_release), window);
 
+    /* label */
+    label = gtk_label_new ("Search ");
+    gtk_misc_set_alignment (GTK_MISC (label), 1, 0.5);
+    gtk_widget_set_size_request (label, INVENIO_SEARCH_WINDOW_WIDTH / 4, -1);
+
     hbox = gtk_hbox_new (FALSE, 2);
-    gtk_container_set_border_width (GTK_CONTAINER (hbox), 2);
-    gtk_box_pack_start (GTK_BOX (hbox),
-                        gtk_label_new ("Search: "), TRUE, TRUE, 0);
+    gtk_container_set_border_width (GTK_CONTAINER (hbox), 4);
+    gtk_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 0);
     gtk_box_pack_start (GTK_BOX (hbox), priv->entry, TRUE, TRUE, 0);
 
     /* results */
