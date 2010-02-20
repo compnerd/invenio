@@ -73,6 +73,9 @@ search_window_dispose (GObject *object)
     InvenioSearchWindow *window;
     InvenioSearchWindowPrivate *priv;
 
+    g_return_if_fail (object);
+    g_return_if_fail (INVENIO_IS_SEARCH_WINDOW (object));
+
     window = INVENIO_SEARCH_WINDOW (object);
     priv = INVENIO_SEARCH_WINDOW_GET_PRIVATE (window);
 
@@ -89,6 +92,9 @@ search_window_finalize (GObject *object)
     InvenioSearchWindow *window;
     InvenioSearchWindowPrivate *priv;
 
+    g_return_if_fail (object);
+    g_return_if_fail (INVENIO_IS_SEARCH_WINDOW (object));
+
     window = INVENIO_SEARCH_WINDOW (object);
     priv = INVENIO_SEARCH_WINDOW_GET_PRIVATE (window);
 
@@ -100,7 +106,6 @@ search_window_finalize (GObject *object)
 static void
 invenio_search_window_class_init (InvenioSearchWindowClass *klass)
 {
-    GtkWindowClass *parent_class = GTK_WINDOW_CLASS (klass);
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
     object_class->dispose = search_window_dispose;
