@@ -40,7 +40,7 @@ invenio_query_result_new (const gchar * const urn,
                           const gchar * const title,
                           const gchar * const description,
                           const gchar * const uri,
-                          const gchar * const rank);
+                          const gchar * const location);
 
 void
 invenio_query_result_free (InvenioQueryResult *result);
@@ -58,7 +58,7 @@ const gchar *
 invenio_query_result_get_uri (const InvenioQueryResult * const result);
 
 const gchar *
-invenio_query_result_get_rank (const InvenioQueryResult * const result);
+invenio_query_result_get_location (const InvenioQueryResult * const result);
 
 #endif
 

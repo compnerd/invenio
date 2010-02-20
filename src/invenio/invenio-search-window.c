@@ -50,6 +50,7 @@ typedef enum SearchResultColumn
     SEARCH_RESULT_COLUMN_TITLE,
     SEARCH_RESULT_COLUMN_DESCRIPTION,
     SEARCH_RESULT_COLUMN_URI,
+    SEARCH_RESULT_COLUMN_LOCATION,
     SEARCH_RESULT_COLUMNS,
 } SearchResultColumn;
 
@@ -181,6 +182,7 @@ _insert_result (GtkListStore                        *store,
                         SEARCH_RESULT_COLUMN_TITLE, invenio_query_result_get_title (result),
                         SEARCH_RESULT_COLUMN_DESCRIPTION, invenio_query_result_get_description (result),
                         SEARCH_RESULT_COLUMN_URI, invenio_query_result_get_uri (result),
+                        SEARCH_RESULT_COLUMN_LOCATION, invenio_query_result_get_location (result),
                         -1);
 }
 
@@ -470,7 +472,8 @@ invenio_search_window_init (InvenioSearchWindow *window)
                             GDK_TYPE_PIXBUF,        /* Icon */
                             G_TYPE_STRING,          /* Title */
                             G_TYPE_STRING,          /* Description */
-                            G_TYPE_STRING);         /* URI */
+                            G_TYPE_STRING,          /* URI */
+                            G_TYPE_STRING);         /* Location */
 
     priv->results->view = gtk_tree_view_new ();
     gtk_tree_view_set_model (GTK_TREE_VIEW (priv->results->view),

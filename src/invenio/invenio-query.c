@@ -28,6 +28,7 @@
  * OF SUCH DAMAGE.
  **/
 
+#include <glib.h>
 #include <libtracker-client/tracker.h>
 
 #include "invenio-query.h"
@@ -50,57 +51,64 @@ struct InvenioQuery
 
 static TrackerClient *client;
 
-#define SPARQL_QUERY_HEADER "SELECT ?urn ?title ?description ?uri fts:rank(?urn) WHERE { "
-#define SPARQL_QUERY_FOOTER " } ORDER BY DESC(fts:rank(?urn)) OFFSET 0 LIMIT " G_STRINGIFY (RESULTS_PER_CATEGORY)
+#define SPARQL_QUERY_HEADER "SELECT ?urn ?title ?description ?uri ?location WHERE { "
+#define SPARQL_QUERY_FOOTER " } ORDER BY DESC (fts:rank (?urn)) OFFSET 0 LIMIT " G_STRINGIFY (RESULTS_PER_CATEGORY)
 
 static const gchar *queries[INVENIO_CATEGORIES] =
 {
     [INVENIO_CATEGORY_APPLICATION]  =   SPARQL_QUERY_HEADER
                                         " ?urn a nfo:Software ."
-                                        " ?urn nie:title ?title ."
-                                        " ?urn fts:match \"%s*\""
+                                        " ?urn fts:match \"%s*\" ."
+                                        " ?urn nie:title ?title ;"
+                                        "      nfo:softwareCmdLine ?uri ."
+                                        " OPTIONAL { ?urn nie:comment ?description }"
                                         SPARQL_QUERY_FOOTER,
 
     [INVENIO_CATEGORY_AUDIO]        =   SPARQL_QUERY_HEADER
                                         " ?urn a nfo:Audio ."
-                                        " ?urn nfo:fileName ?title ."
-                                        " ?urn fts:match \"%s*\""
+                                        " ?urn fts:match \"%s*\" ."
+                                        " ?urn nfo:fileName ?title ;"
+                                        "      nie:url ?uri ."
+                                        " OPTIONAL { ?urn nie:title ?description }"
                                         SPARQL_QUERY_FOOTER,
 
     [INVENIO_CATEGORY_BOOKMARK]     =   SPARQL_QUERY_HEADER
                                         " ?urn a nfo:Bookmark ."
-                                        " ?urn nie:title ?title ."
                                         " ?urn fts:match \"%s*\" ."
+                                        " ?urn nie:title ?title ."
                                         SPARQL_QUERY_FOOTER,
 
     [INVENIO_CATEGORY_CONTACT]      =   SPARQL_QUERY_HEADER
                                         " ?urn a nco:Contact ."
-                                        " ?urn nco:fullname ?title ."
                                         " ?urn fts:match \"%s*\" ."
+                                        " ?urn nco:fullname ?title ."
                                         SPARQL_QUERY_FOOTER,
 
     [INVENIO_CATEGORY_DOCUMENT]     =   SPARQL_QUERY_HEADER
                                         " ?urn a nfo:Document ."
-                                        " ?urn nfo:fileName ?title ."
                                         " ?urn fts:match \"%s*\" ."
+                                        " ?urn nfo:fileName ?title ;"
+                                        "      nie:url ?uri ."
                                         SPARQL_QUERY_FOOTER,
 
     [INVENIO_CATEGORY_FOLDER]       =   SPARQL_QUERY_HEADER
                                         " ?urn a nfo:Folder ."
-                                        " ?urn nfo:fileName ?title ."
                                         " ?urn fts:match \"%s*\" ."
+                                        " ?urn nfo:fileName ?title ;"
+                                        "      nie:url ?uri ."
                                         SPARQL_QUERY_FOOTER,
 
     [INVENIO_CATEGORY_FONT]         =   SPARQL_QUERY_HEADER
                                         " ?urn a nfo:Font ."
-                                        " ?urn nfo:fontFamily ?title ."
                                         " ?urn fts:match \"%s*\" ."
+                                        " ?urn nfo:fontFamily ?title ."
                                         SPARQL_QUERY_FOOTER,
 
     [INVENIO_CATEGORY_IMAGE]        =   SPARQL_QUERY_HEADER
                                         " ?urn a nfo:Image ."
-                                        " ?urn nfo:fileName ?title ."
                                         " ?urn fts:match \"%s*\" ."
+                                        " ?urn nfo:fileName ?title ;"
+                                        "      nie:url ?uri ."
                                         SPARQL_QUERY_FOOTER,
 };
 
@@ -154,7 +162,7 @@ query_collect_result (gpointer  data,
                                                   metadata[1],      /* title */
                                                   metadata[2],      /* description */
                                                   metadata[3],      /* uri */
-                                                  metadata[4]));    /* rank */
+                                                  metadata[4]));    /* location */
 }
 
 static void

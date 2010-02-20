@@ -36,7 +36,7 @@ struct InvenioQueryResult
     gchar *title;
     gchar *description;
     gchar *uri;
-    gchar *rank;
+    gchar *location;
 };
 
 InvenioQueryResult *
@@ -44,7 +44,7 @@ invenio_query_result_new (const gchar * const urn,
                           const gchar * const title,
                           const gchar * const description,
                           const gchar * const uri,
-                          const gchar * const rank)
+                          const gchar * const location)
 {
     InvenioQueryResult *result;
 
@@ -54,7 +54,7 @@ invenio_query_result_new (const gchar * const urn,
     result->title = g_strdup (title);
     result->description = g_strdup (description);
     result->uri = g_strdup (uri);
-    result->rank = g_strdup (rank);
+    result->location = g_strdup (location);
 
     return result;
 };
@@ -66,7 +66,6 @@ invenio_query_result_free (InvenioQueryResult *result)
     g_free (result->title);
     g_free (result->description);
     g_free (result->uri);
-    g_free (result->rank);
 
     g_slice_free (InvenioQueryResult, result);
 }
@@ -96,8 +95,8 @@ invenio_query_result_get_uri (const InvenioQueryResult * const result)
 }
 
 const gchar *
-invenio_query_result_get_rank (const InvenioQueryResult * const result)
+invenio_query_result_get_location (const InvenioQueryResult * const result)
 {
-    return result->rank;
+    return result->location;
 }
 
