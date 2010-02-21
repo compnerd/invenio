@@ -425,6 +425,85 @@ search_results_render_icon (GtkTreeViewColumn   *tree_column,
 }
 
 static void
+invenio_search_window_row_activated (GtkTreeView        *tree_view,
+                                     GtkTreePath        *path,
+                                     GtkTreeViewColumn  *column,
+                                     gpointer            user_data)
+{
+    const gchar *uri;
+    gchar *scheme = NULL;
+    GError *error = NULL;
+    GAppInfo *info = NULL;
+    InvenioSearchWindow *window;
+    InvenioSearchWindowPrivate *priv;
+    GAppLaunchContext *context = NULL;
+    GtkTreeIter iter;
+
+    window = INVENIO_SEARCH_WINDOW (user_data);
+    priv = INVENIO_SEARCH_WINDOW_GET_PRIVATE (window);
+
+    if (gtk_tree_model_get_iter (GTK_TREE_MODEL (priv->results->model), &iter, path))
+    {
+        gtk_tree_model_get (GTK_TREE_MODEL (priv->results->model), &iter,
+                            SEARCH_RESULT_COLUMN_URI, &uri, -1);
+
+        context = G_APP_LAUNCH_CONTEXT (gdk_app_launch_context_new ());
+        gdk_app_launch_context_set_screen (GDK_APP_LAUNCH_CONTEXT (context),
+                                           gtk_widget_get_screen (GTK_WIDGET (window)));
+
+        scheme = g_uri_parse_scheme (uri);
+
+        /*
+         * if there is no scheme or the path is abolute, the URI is probably an
+         * executable.  Because that is not a URI, we need to handle that case
+         * separately.
+         */
+        if (! scheme || g_path_is_absolute (uri))
+        {
+
+            info = g_app_info_create_from_commandline (uri, NULL,
+                                                       G_APP_INFO_CREATE_NONE,
+                                                       &error);
+            if (error)
+            {
+                g_warning ("Could not create GAppInfo for command '%s': %s",
+                           uri, error->message);
+                goto out;
+            }
+
+            if (g_app_info_launch (info, NULL, context, &error))
+                goto out;
+
+            g_warning ("Could not launch application for uri '%s': %s",
+                       uri, error->message);
+
+            /* clear the error before we try again below */
+            g_error_free (error);
+            error = NULL;
+
+            /* fall through, and try to launch it as a URI */
+        }
+
+        if (! g_app_info_launch_default_for_uri (uri, context, &error))
+            g_warning ("Could not launch application for uri '%s': %s",
+                       uri, error->message);
+    }
+
+out:
+    if (scheme)
+        g_free (scheme);
+
+    if (error)
+        g_error_free (error);
+
+    if (info)
+        g_object_unref (info);
+
+    if (context)
+        g_object_unref (context);
+}
+
+static void
 invenio_search_window_init (InvenioSearchWindow *window)
 {
     InvenioSearchWindowPrivate *priv;
@@ -487,6 +566,8 @@ invenio_search_window_init (InvenioSearchWindow *window)
                                        FALSE);
     gtk_tree_view_set_tooltip_column (GTK_TREE_VIEW (priv->results->view),
                                       SEARCH_RESULT_COLUMN_DESCRIPTION);
+    g_signal_connect (G_OBJECT (priv->results->view), "row-activated",
+                      G_CALLBACK (invenio_search_window_row_activated), window);
 
     /* Column: Category */
     column = gtk_tree_view_column_new ();
