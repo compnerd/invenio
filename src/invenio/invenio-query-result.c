@@ -28,6 +28,8 @@
  * OF SUCH DAMAGE.
  **/
 
+#include <string.h>
+
 #include "invenio-query-result.h"
 
 struct InvenioQueryResult
@@ -50,11 +52,22 @@ invenio_query_result_new (const gchar * const urn,
 
     result = g_slice_new0 (InvenioQueryResult);
 
-    result->urn = g_strdup (urn);
-    result->title = g_strdup (title);
-    result->description = g_strdup (description);
-    result->uri = g_strdup (uri);
-    result->location = g_strdup (location);
+    /* XXX Is there a more robust way to check for undefined values? */
+
+    if (strcmp (urn, "urn_u") != 0)
+        result->urn = g_strdup (urn);
+
+    if (strcmp (title, "title_u") != 0)
+        result->title = g_strdup (title);
+
+    if (strcmp (description, "description_u") != 0)
+        result->description = g_strdup (description);
+
+    if (strcmp (uri, "uri_u") != 0)
+        result->uri = g_strdup (uri);
+
+    if (strcmp (location, "location_u") != 0)
+        result->location = g_strdup (location);
 
     return result;
 };
@@ -62,10 +75,17 @@ invenio_query_result_new (const gchar * const urn,
 void
 invenio_query_result_free (InvenioQueryResult *result)
 {
-    g_free (result->urn);
-    g_free (result->title);
-    g_free (result->description);
-    g_free (result->uri);
+    if (result->urn)
+        g_free (result->urn);
+
+    if (result->title)
+        g_free (result->title);
+
+    if (result->description)
+        g_free (result->description);
+
+    if (result->uri)
+        g_free (result->uri);
 
     g_slice_free (InvenioQueryResult, result);
 }
