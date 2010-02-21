@@ -95,7 +95,9 @@ status_icon_popup_menu (GtkStatusIcon   *icon,
 static void
 status_icon_dispose (GObject *object)
 {
-    InvenioStatusIcon *icon = INVENIO_STATUS_ICON (icon);
+    InvenioStatusIcon *icon;
+
+    icon = INVENIO_STATUS_ICON (object);
 
     g_object_unref (icon->context_menu);
     g_object_unref (icon->search_window);
@@ -106,7 +108,9 @@ status_icon_dispose (GObject *object)
 static void
 status_icon_finalize (GObject *object)
 {
-    InvenioStatusIcon *icon = INVENIO_STATUS_ICON (icon);
+    InvenioStatusIcon *icon;
+
+    icon = INVENIO_STATUS_ICON (object);
 
     G_OBJECT_CLASS (invenio_status_icon_parent_class)->finalize (object);
 }
