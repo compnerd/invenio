@@ -135,30 +135,36 @@ _reset_search (InvenioSearchWindow *window)
 }
 
 static gboolean
-search_window_focus_out (GtkWidget      *widget,
-                         GdkEventFocus  *event,
-                         gpointer        user_data)
+invenio_search_window_focus_out (GtkWidget      *widget,
+                                 GdkEventFocus  *event,
+                                 gpointer        user_data)
 {
     InvenioSearchWindow *window;
     InvenioSearchWindowPrivate *priv;
 
+    g_return_val_if_fail (widget, TRUE);
+    g_return_val_if_fail (INVENIO_IS_SEARCH_WINDOW (widget), TRUE);
+
     window = INVENIO_SEARCH_WINDOW (widget);
     priv = INVENIO_SEARCH_WINDOW_GET_PRIVATE (window);
 
-    gtk_widget_hide (widget);
     /* XXX Should this reset or just hide? */
+    gtk_widget_hide (widget);
     _reset_search (window);
 
     return TRUE;
 }
 
 static gboolean
-search_window_key_press (GtkWidget      *widget,
-                         GdkEventKey    *event,
-                         gpointer        user_data)
+invenio_search_window_key_press (GtkWidget      *widget,
+                                 GdkEventKey    *event,
+                                 gpointer        user_data)
 {
     InvenioSearchWindow *window;
     InvenioSearchWindowPrivate *priv;
+
+    g_return_val_if_fail (widget, TRUE);
+    g_return_val_if_fail (INVENIO_IS_SEARCH_WINDOW (widget), TRUE);
 
     window = INVENIO_SEARCH_WINDOW (widget);
     priv = INVENIO_SEARCH_WINDOW_GET_PRIVATE (window);
@@ -166,7 +172,6 @@ search_window_key_press (GtkWidget      *widget,
     if (event->keyval == GDK_Escape)
     {
         gtk_widget_hide (widget);
-        /* XXX Should this reset or just hide? */
         _reset_search (window);
         return FALSE;
     }
@@ -325,8 +330,8 @@ out:
 }
 
 static void
-search_window_entry_changed (GtkEditable    *editable,
-                             gpointer        user_data)
+invenio_search_window_entry_changed (GtkEditable    *editable,
+                                     gpointer        user_data)
 {
     const gchar *search;
     InvenioSearchWindow *window;
@@ -357,10 +362,10 @@ search_window_entry_changed (GtkEditable    *editable,
 }
 
 static void
-search_window_entry_icon_release (GtkEntry              *entry,
-                                  GtkEntryIconPosition   icon_pos,
-                                  GdkEventButton        *event,
-                                  gpointer               user_data)
+invenio_search_window_entry_icon_release (GtkEntry              *entry,
+                                          GtkEntryIconPosition   icon_pos,
+                                          GdkEventButton        *event,
+                                          gpointer               user_data)
 {
     InvenioSearchWindow *window;
     InvenioSearchWindowPrivate *priv;
@@ -600,16 +605,17 @@ invenio_search_window_init (InvenioSearchWindow *window)
 
     gtk_widget_set_events (GTK_WIDGET (window), GDK_FOCUS_CHANGE_MASK);
     g_signal_connect (G_OBJECT (window), "focus-out-event",
-                      G_CALLBACK (search_window_focus_out), window);
+                      G_CALLBACK (invenio_search_window_focus_out), window);
     g_signal_connect (G_OBJECT (window), "key-press-event",
-                      G_CALLBACK (search_window_key_press), window);
+                      G_CALLBACK (invenio_search_window_key_press), window);
 
     /* entry */
     priv->entry = gtk_entry_new ();
     g_signal_connect (G_OBJECT (priv->entry), "changed",
-                      G_CALLBACK (search_window_entry_changed), window);
+                      G_CALLBACK (invenio_search_window_entry_changed), window);
     g_signal_connect (G_OBJECT (priv->entry), "icon-release",
-                      G_CALLBACK (search_window_entry_icon_release), window);
+                      G_CALLBACK (invenio_search_window_entry_icon_release),
+                      window);
 
     /* label */
     label = gtk_label_new ("Search ");
