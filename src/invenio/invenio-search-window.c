@@ -460,6 +460,7 @@ invenio_search_window_init (InvenioSearchWindow *window)
     gtk_misc_set_alignment (GTK_MISC (label), 1, 0.5);
     gtk_widget_set_size_request (label, INVENIO_SEARCH_WINDOW_WIDTH / 4, -1);
 
+    /* search area */
     hbox = gtk_hbox_new (FALSE, 2);
     gtk_container_set_border_width (GTK_CONTAINER (hbox), 4);
     gtk_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 0);
@@ -480,24 +481,29 @@ invenio_search_window_init (InvenioSearchWindow *window)
     priv->results->view = gtk_tree_view_new ();
     gtk_tree_view_set_model (GTK_TREE_VIEW (priv->results->view),
                              GTK_TREE_MODEL (priv->results->model));
+    gtk_tree_view_set_enable_search (GTK_TREE_VIEW (priv->results->view),
+                                     FALSE);
     gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (priv->results->view),
                                        FALSE);
+    gtk_tree_view_set_tooltip_column (GTK_TREE_VIEW (priv->results->view),
+                                      SEARCH_RESULT_COLUMN_DESCRIPTION);
 
     /* Column: Category */
     column = gtk_tree_view_column_new ();
+    gtk_tree_view_column_set_sizing (column, GTK_TREE_VIEW_COLUMN_GROW_ONLY);
+
     cell = gtk_cell_renderer_text_new ();
     gtk_tree_view_column_pack_start (column, cell, FALSE);
     gtk_tree_view_column_set_cell_data_func (column, cell,
                                              search_results_render_category_name,
                                              window, NULL);
-    gtk_tree_view_column_set_sizing (column, GTK_TREE_VIEW_COLUMN_GROW_ONLY);
-    gtk_tree_view_column_set_sort_column_id (column,
-                                             SEARCH_RESULT_COLUMN_CATEGORY);
-    gtk_tree_view_column_set_title (column, "Category");
+
     gtk_tree_view_append_column (GTK_TREE_VIEW (priv->results->view), column);
 
     /* Column: Icon + Title */
     column = gtk_tree_view_column_new ();
+    gtk_tree_view_column_set_sizing (column, GTK_TREE_VIEW_COLUMN_GROW_ONLY);
+
     cell = gtk_cell_renderer_pixbuf_new ();
     gtk_tree_view_column_pack_start (column, cell, FALSE);
     gtk_tree_view_column_set_cell_data_func (column, cell,
@@ -505,23 +511,18 @@ invenio_search_window_init (InvenioSearchWindow *window)
                                              window, NULL);
 
     cell = gtk_cell_renderer_text_new ();
-    g_object_set (G_OBJECT (cell), "xpad", 4, "ypad", 1, NULL);
     g_object_set (G_OBJECT (cell), "ellipsize", PANGO_ELLIPSIZE_END, NULL);
     gtk_tree_view_column_pack_start (column, cell, TRUE);
     gtk_tree_view_column_add_attribute (column, cell, "text",
                                         SEARCH_RESULT_COLUMN_TITLE);
-    gtk_tree_view_column_set_sizing (column, GTK_TREE_VIEW_COLUMN_GROW_ONLY);
-    gtk_tree_view_column_set_sort_column_id (column,
-                                             SEARCH_RESULT_COLUMN_TITLE);
-    gtk_tree_view_column_set_title (column, "Result");
     gtk_tree_view_append_column (GTK_TREE_VIEW (priv->results->view), column);
 
+    /* window contents */
     vbox = gtk_vbox_new (FALSE, 0);
     gtk_container_set_border_width (GTK_CONTAINER (vbox), 0);
     gtk_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
     gtk_box_pack_start (GTK_BOX (vbox), priv->results->view, TRUE, TRUE, 0);
 
-    /* window contents */
     gtk_widget_show_all (GTK_WIDGET (vbox));
 
     gtk_container_add (GTK_CONTAINER (window), vbox);
