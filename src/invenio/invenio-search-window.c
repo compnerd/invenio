@@ -384,20 +384,20 @@ invenio_search_window_entry_icon_release (GtkEntry              *entry,
 }
 
 static void
-search_results_render_category_name (GtkTreeViewColumn  *tree_column,
-                                     GtkCellRenderer    *cell,
-                                     GtkTreeModel       *tree_model,
-                                     GtkTreeIter        *iter,
-                                     gpointer            user_data)
+_category_cell (GtkTreeViewColumn  *tree_column,
+                GtkCellRenderer    *cell,
+                GtkTreeModel       *tree_model,
+                GtkTreeIter        *iter,
+                gpointer            data)
 {
     GtkTreePath *path;
     InvenioSearchWindow *window;
     InvenioSearchWindowPrivate *priv;
-    InvenioCategory category, value;
+    InvenioCategory category, previous;
     gboolean visible = TRUE;
     GtkTreeIter entry;
 
-    window = INVENIO_SEARCH_WINDOW (user_data);
+    window = INVENIO_SEARCH_WINDOW (data);
     priv = INVENIO_SEARCH_WINDOW_GET_PRIVATE (window);
 
     gtk_tree_model_get (GTK_TREE_MODEL (priv->results->model), iter,
@@ -409,9 +409,9 @@ search_results_render_category_name (GtkTreeViewColumn  *tree_column,
         if (gtk_tree_model_get_iter (GTK_TREE_MODEL (priv->results->model), &entry, path))
         {
             gtk_tree_model_get (GTK_TREE_MODEL (priv->results->model), &entry,
-                                SEARCH_RESULT_COLUMN_CATEGORY, &value, -1);
+                                SEARCH_RESULT_COLUMN_CATEGORY, &previous, -1);
 
-            if (value == category)
+            if (category == previous)
                 visible = FALSE;
         }
     }
@@ -443,11 +443,11 @@ _uri_is_executable (const gchar * const uri)
 }
 
 static void
-search_results_render_icon (GtkTreeViewColumn   *tree_column,
-                            GtkCellRenderer     *cell,
-                            GtkTreeModel        *tree_model,
-                            GtkTreeIter         *iter,
-                            gpointer             user_data)
+_icon_cell (GtkTreeViewColumn   *tree_column,
+            GtkCellRenderer     *cell,
+            GtkTreeModel        *tree_model,
+            GtkTreeIter         *iter,
+            gpointer             data)
 {
     gchar *uri = NULL;
     GIcon *icon = NULL;
@@ -658,8 +658,7 @@ invenio_search_window_init (InvenioSearchWindow *window)
     cell = gtk_cell_renderer_text_new ();
     gtk_tree_view_column_pack_start (column, cell, FALSE);
     gtk_tree_view_column_set_cell_data_func (column, cell,
-                                             search_results_render_category_name,
-                                             window, NULL);
+                                             _category_cell, window, NULL);
 
     gtk_tree_view_append_column (GTK_TREE_VIEW (priv->results->view), column);
 
@@ -670,8 +669,7 @@ invenio_search_window_init (InvenioSearchWindow *window)
     cell = gtk_cell_renderer_pixbuf_new ();
     gtk_tree_view_column_pack_start (column, cell, FALSE);
     gtk_tree_view_column_set_cell_data_func (column, cell,
-                                             search_results_render_icon,
-                                             window, NULL);
+                                             _icon_cell, window, NULL);
 
     cell = gtk_cell_renderer_text_new ();
     g_object_set (G_OBJECT (cell), "ellipsize", PANGO_ELLIPSIZE_END, NULL);
