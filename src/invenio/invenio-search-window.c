@@ -619,8 +619,7 @@ invenio_search_window_init (InvenioSearchWindow *window)
 
     /* label */
     label = gtk_label_new ("Search ");
-    gtk_misc_set_alignment (GTK_MISC (label), 1, 0.5);
-    gtk_widget_set_size_request (label, INVENIO_SEARCH_WINDOW_WIDTH / 4, -1);
+    gtk_misc_set_alignment (GTK_MISC (label), 0.95, 0.5);
 
     /* search area */
     hbox = gtk_hbox_new (FALSE, 2);
