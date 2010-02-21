@@ -169,18 +169,28 @@ invenio_search_window_key_press (GtkWidget      *widget,
     window = INVENIO_SEARCH_WINDOW (widget);
     priv = INVENIO_SEARCH_WINDOW_GET_PRIVATE (window);
 
-    if (event->keyval == GDK_Escape)
+    switch (event->keyval)
     {
-        gtk_widget_hide (widget);
-        _reset_search (window);
-        return FALSE;
-    }
-    else
-    {
-        return GTK_WIDGET_CLASS (invenio_search_window_parent_class)->key_press_event (widget, event);
+        case GDK_Escape:
+            /* XXX Should this reset or just hide? */
+            gtk_widget_hide (widget);
+            _reset_search (window);
+            return FALSE;
+
+        case GDK_Up:
+        case GDK_Down:
+            /* TODO Ensure that the search entry retains focus */
+            break;
+
+        case GDK_Return:
+            /* TODO Pass the activate along to the treeview */
+            break;
+
+        default:
+            break;
     }
 
-    g_assert_not_reached ();
+    return GTK_WIDGET_CLASS (invenio_search_window_parent_class)->key_press_event (widget, event);
 }
 
 static inline void
