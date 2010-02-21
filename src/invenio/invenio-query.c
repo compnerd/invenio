@@ -64,14 +64,6 @@ static const gchar *queries[INVENIO_CATEGORIES] =
                                         " OPTIONAL { ?urn nie:comment ?description }"
                                         SPARQL_QUERY_FOOTER,
 
-    [INVENIO_CATEGORY_AUDIO]        =   SPARQL_QUERY_HEADER
-                                        " ?urn a nfo:Audio ."
-                                        " ?urn fts:match \"%s*\" ."
-                                        " ?urn nfo:fileName ?title ;"
-                                        "      nie:url ?uri ."
-                                        " OPTIONAL { ?urn nie:title ?description }"
-                                        SPARQL_QUERY_FOOTER,
-
     [INVENIO_CATEGORY_BOOKMARK]     =   SPARQL_QUERY_HEADER
                                         " ?urn a nfo:Bookmark ."
                                         " ?urn fts:match \"%s*\" ."
@@ -109,6 +101,29 @@ static const gchar *queries[INVENIO_CATEGORIES] =
                                         " ?urn fts:match \"%s*\" ."
                                         " ?urn nfo:fileName ?title ;"
                                         "      nie:url ?uri ."
+                                        SPARQL_QUERY_FOOTER,
+
+    [INVENIO_CATEGORY_MESSAGE]      =   SPARQL_QUERY_HEADER
+                                        " ?urn a nmo:Message ."
+                                        " ?urn fts:match \"%s*\" ."
+                                        " ?urn nie:subject ?title ;"
+                                        "      nie:url ?uri ."
+                                        SPARQL_QUERY_FOOTER,
+
+    [INVENIO_CATEGORY_MUSIC]        =   SPARQL_QUERY_HEADER
+                                        " ?urn a nfo:Audio ."
+                                        " ?urn fts:match \"%s*\" ."
+                                        " ?urn nfo:fileName ?title ;"
+                                        "      nie:url ?uri ."
+                                        " OPTIONAL { ?urn nie:title ?description }"
+                                        SPARQL_QUERY_FOOTER,
+
+    [INVENIO_CATEGORY_VIDEO]        =   SPARQL_QUERY_HEADER
+                                        " ?urn a nfo:Video ."
+                                        " ?urn fts:match \"%s*\" ."
+                                        " ?urn nfo:fileName ?title ;"
+                                        "      nie:url ?uri ."
+                                        " OPTIONAL { ?urn nie:title ?description }"
                                         SPARQL_QUERY_FOOTER,
 };
 

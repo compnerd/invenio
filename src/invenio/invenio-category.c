@@ -37,8 +37,6 @@ invenio_category_to_string (const InvenioCategory category)
     {
         case INVENIO_CATEGORY_APPLICATION:
             return "Applications";
-        case INVENIO_CATEGORY_AUDIO:
-            return "Audio";
         case INVENIO_CATEGORY_BOOKMARK:
             return "Bookmarks";
         case INVENIO_CATEGORY_CONTACT:
@@ -51,6 +49,12 @@ invenio_category_to_string (const InvenioCategory category)
             return "Fonts";
         case INVENIO_CATEGORY_IMAGE:
             return "Images";
+        case INVENIO_CATEGORY_MESSAGE:
+            return "Messages";
+        case INVENIO_CATEGORY_MUSIC:
+            return "Music";
+        case INVENIO_CATEGORY_VIDEO:
+            return "Videos";
         case INVENIO_CATEGORIES:
             g_assert_not_reached ();
     }
