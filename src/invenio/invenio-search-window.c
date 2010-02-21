@@ -34,6 +34,8 @@
 
 #include <gdk/gdkkeysyms.h>
 
+#include <pango/pango-layout.h>
+
 #include "invenio-query.h"
 #include "invenio-category.h"
 #include "invenio-query-result.h"
@@ -504,6 +506,7 @@ invenio_search_window_init (InvenioSearchWindow *window)
 
     cell = gtk_cell_renderer_text_new ();
     g_object_set (G_OBJECT (cell), "xpad", 4, "ypad", 1, NULL);
+    g_object_set (G_OBJECT (cell), "ellipsize", PANGO_ELLIPSIZE_END, NULL);
     gtk_tree_view_column_pack_start (column, cell, TRUE);
     gtk_tree_view_column_add_attribute (column, cell, "text",
                                         SEARCH_RESULT_COLUMN_TITLE);
