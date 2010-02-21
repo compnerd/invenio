@@ -30,6 +30,7 @@
 
 #include <string.h>
 
+#include <gio/gio.h>
 #include <glib/gprintf.h>
 
 #include <gdk/gdkkeysyms.h>
@@ -43,6 +44,7 @@
 
 #define INVENIO_SEARCH_WINDOW_GET_PRIVATE(o)    (G_TYPE_INSTANCE_GET_PRIVATE ((o), INVENIO_TYPE_SEARCH_WINDOW, InvenioSearchWindowPrivate))
 
+#define INVENIO_ICON_SIZE                       (16)
 #define INVENIO_SEARCH_WINDOW_WIDTH             (340)
 
 typedef enum SearchResultColumn
@@ -66,6 +68,8 @@ typedef struct InvenioSearchWindowPrivate
 {
     GtkWidget           *entry;
     SearchResultsWidget *results;
+
+    GtkIconTheme        *icon_theme;
 } InvenioSearchWindowPrivate;
 
 G_DEFINE_TYPE (InvenioSearchWindow, invenio_search_window, GTK_TYPE_WINDOW);
@@ -85,6 +89,8 @@ search_window_dispose (GObject *object)
     g_object_unref (priv->entry);
     g_object_unref (priv->results->view);
     g_object_unref (priv->results->model);
+
+    g_object_unref (priv->icon_theme);
 
     G_OBJECT_CLASS (invenio_search_window_parent_class)->dispose (object);
 }
@@ -382,8 +388,9 @@ search_results_render_category_name (GtkTreeViewColumn  *tree_column,
     GtkTreePath *path;
     InvenioSearchWindow *window;
     InvenioSearchWindowPrivate *priv;
-    InvenioCategory category;
+    InvenioCategory category, value;
     gboolean visible = TRUE;
+    GtkTreeIter entry;
 
     window = INVENIO_SEARCH_WINDOW (user_data);
     priv = INVENIO_SEARCH_WINDOW_GET_PRIVATE (window);
@@ -394,15 +401,12 @@ search_results_render_category_name (GtkTreeViewColumn  *tree_column,
 
     if (gtk_tree_path_prev (path))
     {
-        GtkTreeIter entry;
-        InvenioCategory previous_category;
-
         if (gtk_tree_model_get_iter (GTK_TREE_MODEL (priv->results->model), &entry, path))
         {
             gtk_tree_model_get (GTK_TREE_MODEL (priv->results->model), &entry,
-                                SEARCH_RESULT_COLUMN_CATEGORY, &previous_category, -1);
+                                SEARCH_RESULT_COLUMN_CATEGORY, &value, -1);
 
-            if (previous_category == category)
+            if (value == category)
                 visible = FALSE;
         }
     }
@@ -415,6 +419,24 @@ search_results_render_category_name (GtkTreeViewColumn  *tree_column,
     gtk_tree_path_free (path);
 }
 
+static gboolean
+_uri_is_executable (const gchar * const uri)
+{
+    gchar *scheme;
+    gboolean executable;
+
+    /*
+     * if there is no scheme or the path is abolute, the URI is probably an
+     * executable.  Because that is not a URI, we need to handle that case
+     * separately.
+     */
+    scheme = g_uri_parse_scheme (uri);
+    executable = (! scheme || g_path_is_absolute (uri));
+    g_free (scheme);
+
+    return executable;
+}
+
 static void
 search_results_render_icon (GtkTreeViewColumn   *tree_column,
                             GtkCellRenderer     *cell,
@@ -422,6 +444,74 @@ search_results_render_icon (GtkTreeViewColumn   *tree_column,
                             GtkTreeIter         *iter,
                             gpointer             user_data)
 {
+    gchar *uri = NULL;
+    GIcon *icon = NULL;
+    GError *error = NULL;
+    InvenioSearchWindow *window;
+    InvenioSearchWindowPrivate *priv;
+
+    g_return_if_fail (INVENIO_IS_SEARCH_WINDOW (data));
+
+    window = INVENIO_SEARCH_WINDOW (data);
+    priv = INVENIO_SEARCH_WINDOW_GET_PRIVATE (window);
+
+    gtk_tree_model_get (GTK_TREE_MODEL (priv->results->model), iter,
+                        SEARCH_RESULT_COLUMN_URI, &uri, -1);
+
+    if (_uri_is_executable (uri))
+    {
+        /* TODO Try to get the application icon */
+        icon = g_themed_icon_new (GTK_STOCK_EXECUTE);
+    }
+    else
+    {
+        gchar *id;
+        GFile *file;
+        GFileInfo *info;
+
+        file = g_file_new_for_uri (uri);
+
+        info = g_file_query_info (file, G_FILE_ATTRIBUTE_STANDARD_ICON,
+                                  G_FILE_QUERY_INFO_NONE, NULL, &error);
+        if (error)
+        {
+            g_warning ("Could not query file info for uri '%s': %s",
+                       uri, error->message);
+            g_error_free (error);
+        }
+        else
+        {
+            /*
+             * The icon is owned by the info and will be unref'ed when the info
+             * is unref'ed.  We need to copy the icon in order to hold a valid
+             * icon.
+             */
+            if ((id = g_icon_to_string (g_file_info_get_icon (info))))
+            {
+                icon = g_icon_new_for_string (id, &error);
+                if (error)
+                {
+                    g_warning ("Could not create GIcon for uri '%s': %s",
+                               uri, error->message);
+                    g_error_free (error);
+                }
+
+                g_free (id);
+            }
+        }
+
+        if (info)
+            g_object_unref (info);
+
+        g_object_unref (file);
+    }
+
+    g_object_set (G_OBJECT (cell), "gicon", icon, "visible", TRUE, NULL);
+
+    if (icon)
+        g_object_unref (icon);
+
+    g_free (uri);
 }
 
 static void
@@ -430,13 +520,8 @@ invenio_search_window_row_activated (GtkTreeView        *tree_view,
                                      GtkTreeViewColumn  *column,
                                      gpointer            user_data)
 {
-    const gchar *uri;
-    gchar *scheme = NULL;
-    GError *error = NULL;
-    GAppInfo *info = NULL;
     InvenioSearchWindow *window;
     InvenioSearchWindowPrivate *priv;
-    GAppLaunchContext *context = NULL;
     GtkTreeIter iter;
 
     window = INVENIO_SEARCH_WINDOW (user_data);
@@ -444,6 +529,10 @@ invenio_search_window_row_activated (GtkTreeView        *tree_view,
 
     if (gtk_tree_model_get_iter (GTK_TREE_MODEL (priv->results->model), &iter, path))
     {
+        gchar *uri = NULL;
+        GError *error = NULL;
+        GAppLaunchContext *context = NULL;
+
         gtk_tree_model_get (GTK_TREE_MODEL (priv->results->model), &iter,
                             SEARCH_RESULT_COLUMN_URI, &uri, -1);
 
@@ -451,15 +540,9 @@ invenio_search_window_row_activated (GtkTreeView        *tree_view,
         gdk_app_launch_context_set_screen (GDK_APP_LAUNCH_CONTEXT (context),
                                            gtk_widget_get_screen (GTK_WIDGET (window)));
 
-        scheme = g_uri_parse_scheme (uri);
-
-        /*
-         * if there is no scheme or the path is abolute, the URI is probably an
-         * executable.  Because that is not a URI, we need to handle that case
-         * separately.
-         */
-        if (! scheme || g_path_is_absolute (uri))
+        if (_uri_is_executable (uri))
         {
+            GAppInfo *info;
 
             info = g_app_info_create_from_commandline (uri, NULL,
                                                        G_APP_INFO_CREATE_NONE,
@@ -468,39 +551,33 @@ invenio_search_window_row_activated (GtkTreeView        *tree_view,
             {
                 g_warning ("Could not create GAppInfo for command '%s': %s",
                            uri, error->message);
-                goto out;
+                g_error_free (error);
+            }
+            else
+            {
+                if (! g_app_info_launch (info, NULL, context, &error))
+                {
+                    g_warning ("Could not launch application for uri '%s': %s",
+                               uri, error->message);
+                    g_error_free (error);
+                }
             }
 
-            if (g_app_info_launch (info, NULL, context, &error))
-                goto out;
-
-            g_warning ("Could not launch application for uri '%s': %s",
-                       uri, error->message);
-
-            /* clear the error before we try again below */
-            g_error_free (error);
-            error = NULL;
-
-            /* fall through, and try to launch it as a URI */
+            g_object_unref (info);
+        }
+        else
+        {
+            if (! g_app_info_launch_default_for_uri (uri, context, &error))
+            {
+                g_warning ("Could not launch application for uri '%s': %s",
+                           uri, error->message);
+                g_error_free (error);
+            }
         }
 
-        if (! g_app_info_launch_default_for_uri (uri, context, &error))
-            g_warning ("Could not launch application for uri '%s': %s",
-                       uri, error->message);
-    }
-
-out:
-    if (scheme)
-        g_free (scheme);
-
-    if (error)
-        g_error_free (error);
-
-    if (info)
-        g_object_unref (info);
-
-    if (context)
         g_object_unref (context);
+        g_free (uri);
+    }
 }
 
 static void
@@ -608,6 +685,9 @@ invenio_search_window_init (InvenioSearchWindow *window)
 
     gtk_container_add (GTK_CONTAINER (window), vbox);
     gtk_widget_show (hbox);
+
+    /* support */
+    priv->icon_theme = gtk_icon_theme_get_default ();
 }
 
 GtkWidget *

@@ -4,8 +4,8 @@ INCLUDES = -I src
 
 bin_PROGRAMS = src/invenio/invenio
 
-src_invenio_invenio_CFLAGS = $(GTK_CFLAGS) $(TRACKER_CFLAGS)
-src_invenio_invenio_LDADD = $(GTK_LIBS) $(TRACKER_LIBS)
+src_invenio_invenio_CFLAGS = $(GTK_CFLAGS) $(GIO_CFLAGS) $(TRACKER_CFLAGS)
+src_invenio_invenio_LDADD = $(GTK_LIBS) $(GIO_LIBS) $(TRACKER_LIBS)
 src_invenio_invenio_SOURCES = src/invenio/invenio.c               \
 			      src/invenio/invenio-category.c      \
 			      src/invenio/invenio-category.h      \
