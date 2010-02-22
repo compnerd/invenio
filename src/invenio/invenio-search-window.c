@@ -155,6 +155,73 @@ invenio_search_window_focus_out (GtkWidget      *widget,
     return TRUE;
 }
 
+static void
+_select_previous_result (InvenioSearchWindow *window)
+{
+    InvenioSearchWindowPrivate *priv;
+    GtkTreeSelection *selection;
+    GtkTreePath *path;
+    GtkTreeIter iter;
+
+    g_return_if_fail (window);
+    g_return_if_fail (INVENIO_IS_SEARCH_WINDOW (window));
+
+    priv = INVENIO_SEARCH_WINDOW_GET_PRIVATE (window);
+
+    selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (priv->results->view));
+
+    if (gtk_tree_selection_get_selected (selection, NULL, &iter))
+    {
+        path = gtk_tree_model_get_path (GTK_TREE_MODEL (priv->results->model), &iter);
+        gtk_tree_path_prev (path);
+    }
+    else
+    {
+        /* XXX Is there a more elegant way to do this? */
+        gtk_tree_model_get_iter_first (GTK_TREE_MODEL (priv->results->model), &iter);
+
+        while (TRUE)
+        {
+            GtkTreeIter next = iter;
+            if (! gtk_tree_model_iter_next (GTK_TREE_MODEL (priv->results->model), &next))
+                break;
+            iter = next;
+        }
+
+        path = gtk_tree_model_get_path (GTK_TREE_MODEL (priv->results->model), &iter);
+    }
+
+    gtk_tree_selection_select_path (selection, path);
+}
+
+static void
+_select_next_result (InvenioSearchWindow *window)
+{
+    InvenioSearchWindowPrivate *priv;
+    GtkTreeSelection *selection;
+    GtkTreePath *path;
+    GtkTreeIter iter;
+
+    g_return_if_fail (window);
+    g_return_if_fail (INVENIO_IS_SEARCH_WINDOW (window));
+
+    priv = INVENIO_SEARCH_WINDOW_GET_PRIVATE (window);
+
+    selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (priv->results->view));
+
+    if (gtk_tree_selection_get_selected (selection, NULL, &iter))
+    {
+        path = gtk_tree_model_get_path (GTK_TREE_MODEL (priv->results->model), &iter);
+        gtk_tree_path_next (path);
+    }
+    else
+    {
+        path = gtk_tree_path_new_first ();
+    }
+
+    gtk_tree_selection_select_path (selection, path);
+}
+
 static gboolean
 invenio_search_window_key_press (GtkWidget      *widget,
                                  GdkEventKey    *event,
@@ -178,13 +245,29 @@ invenio_search_window_key_press (GtkWidget      *widget,
             return FALSE;
 
         case GDK_Up:
+            _select_previous_result (window);
+            return FALSE;
+
         case GDK_Down:
-            /* TODO Ensure that the search entry retains focus */
-            break;
+            _select_next_result (window);
+            return FALSE;
 
         case GDK_Return:
-            /* TODO Pass the activate along to the treeview */
-            break;
+            {
+                GtkTreeSelection *selection;
+                GtkTreePath *path;
+                GtkTreeIter iter;
+
+                selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (priv->results->view));
+
+                if (gtk_tree_selection_get_selected (selection, NULL, &iter))
+                {
+                    path = gtk_tree_model_get_path (GTK_TREE_MODEL (priv->results->model), &iter);
+                    gtk_tree_view_row_activated (GTK_TREE_VIEW (priv->results->view), path, NULL);
+                }
+            }
+
+            return FALSE;
 
         default:
             break;
@@ -650,6 +733,7 @@ invenio_search_window_init (InvenioSearchWindow *window)
                             G_TYPE_STRING);         /* Location */
 
     priv->results->view = gtk_tree_view_new ();
+    gtk_widget_set_can_focus (GTK_WIDGET (priv->results->view), FALSE);
     gtk_tree_view_set_model (GTK_TREE_VIEW (priv->results->view),
                              GTK_TREE_MODEL (priv->results->model));
     gtk_tree_view_set_enable_search (GTK_TREE_VIEW (priv->results->view),
