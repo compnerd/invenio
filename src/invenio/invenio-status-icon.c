@@ -33,155 +33,107 @@
 #include "invenio-status-icon.h"
 #include "invenio-search-window.h"
 
-#define INVENIO_TYPE_STATUS_ICON            (invenio_status_icon_get_type ())
-#define INVENIO_STATUS_ICON(o)              (G_TYPE_CHECK_INSTANCE_CAST ((o), INVENIO_TYPE_STATUS_ICON, InvenioStatusIcon))
-#define INVENIO_STATUS_ICON_CLASS(c)        (G_TYPE_CHECK_CLASS_CAST ((c), INVENIO_TYPE_STATUS_ICON, InvenioStatusIconClass))
-#define INVENIO_IS_STATUS_ICON(o)           (G_TYPE_CHECK_INSTANCE_TYPE ((o), INVENIO_TYPE_STATUS_ICON))
-#define INVENIO_IS_STATUS_ICON_CLASS(c)     (G_TYPE_CHECK_CLASS_TYPE ((c), INVENIO_TYPE_STATUS_ICON))
-#define INVENIO_STATUS_ICON_GET_CLASS(o)    (G_TYPE_INSTANCE_GET_CLASS ((o), INVENIO_TYPE_STATUS_ICON))
-
 typedef struct InvenioStatusIcon
 {
-    GtkStatusIcon    parent;
+    GtkStatusIcon   *status_icon;
 
     GtkWidget       *context_menu;
     GtkWidget       *search_window;
 } InvenioStatusIcon;
-
-typedef struct InvenioStatusIconClass
-{
-    GtkStatusIconClass  parent;
-} InvenioStatusIconClass;
-
-G_DEFINE_TYPE (InvenioStatusIcon, invenio_status_icon, GTK_TYPE_STATUS_ICON);
 
 
 static InvenioStatusIcon *icon;
 
 
 static void
-status_icon_activate (GtkStatusIcon *icon)
+_icon_activate (GtkStatusIcon   *status_icon,
+                gpointer         user_data)
 {
-    InvenioStatusIcon *instance;
-    GtkWidget *menu, *window;
+    GtkWidget *menu;
+    InvenioStatusIcon *icon;
     gboolean pushed_in;
     gint x, y;
 
-    instance = INVENIO_STATUS_ICON (icon);
+    icon = (InvenioStatusIcon *) user_data;
 
     menu = gtk_menu_new ();
-    gtk_status_icon_position_menu (GTK_MENU (menu), &x, &y, &pushed_in, icon);
+    gtk_status_icon_position_menu (GTK_MENU (menu),
+                                   &x, &y, &pushed_in,
+                                   status_icon);
 
-    window = instance->search_window;
-    gtk_window_move (GTK_WINDOW (window), x, y);
-    gtk_widget_show (GTK_WIDGET (window));
+    gtk_window_move (GTK_WINDOW (icon->search_window), x, y);
+    gtk_window_present (GTK_WINDOW (icon->search_window));
 
     g_object_ref_sink (menu);
 }
 
 static void
-status_icon_popup_menu (GtkStatusIcon   *icon,
-                        guint            button,
-                        guint32          activate_time)
+_icon_popup_menu (GtkStatusIcon *status_icon,
+                  guint          button,
+                  guint          activate_time,
+                  gpointer       user_data)
 {
-    InvenioStatusIcon *instance = INVENIO_STATUS_ICON (icon);
+    InvenioStatusIcon *icon;
 
-    gtk_menu_popup (GTK_MENU (instance->context_menu),
+    icon = (InvenioStatusIcon *) user_data;
+
+    gtk_menu_popup (GTK_MENU (icon->context_menu),
                     NULL, NULL,
-                    gtk_status_icon_position_menu, icon,
+                    gtk_status_icon_position_menu, status_icon,
                     button, activate_time);
 }
 
 static void
-status_icon_dispose (GObject *object)
-{
-    InvenioStatusIcon *icon;
-
-    icon = INVENIO_STATUS_ICON (object);
-
-    g_object_unref (icon->context_menu);
-    g_object_unref (icon->search_window);
-
-    G_OBJECT_CLASS (invenio_status_icon_parent_class)->dispose (object);
-}
-
-static void
-status_icon_finalize (GObject *object)
-{
-    InvenioStatusIcon *icon;
-
-    icon = INVENIO_STATUS_ICON (object);
-
-    G_OBJECT_CLASS (invenio_status_icon_parent_class)->finalize (object);
-}
-
-static void
-invenio_status_icon_class_init (InvenioStatusIconClass *klass)
-{
-    GtkStatusIconClass *parent_class = GTK_STATUS_ICON_CLASS (klass);
-    GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-    parent_class->activate = status_icon_activate;
-    parent_class->popup_menu = status_icon_popup_menu;
-
-    object_class->dispose = status_icon_dispose;
-    object_class->finalize = status_icon_finalize;
-}
-
-static void
-status_icon_about (GtkMenuItem  *menu_item,
-                   gpointer      user_data)
+_menu_about_activate (GtkMenuItem   *menu_item,
+                      gpointer       user_data)
 {
     /* TODO Implement About Dialog */
 }
 
 static void
-status_icon_quit (GtkMenuItem   *menu_item,
-                  gpointer       user_data)
+_menu_quit_activate (GtkMenuItem    *menu_item,
+                     gpointer        user_data)
 {
     gtk_main_quit ();
 }
 
-static void
-_create_context_menu (InvenioStatusIcon *icon)
+static GtkWidget *
+_context_menu_create_for_icon (InvenioStatusIcon *icon)
 {
-    GtkWidget *item;
+    GtkWidget *menu, *item;
 
-    icon->context_menu = gtk_menu_new ();
+    menu = gtk_menu_new ();
 
     /* About */
     item = gtk_image_menu_item_new_from_stock (GTK_STOCK_ABOUT, NULL);
-    g_signal_connect (G_OBJECT (item), "activate", G_CALLBACK (status_icon_about), icon);
-    gtk_menu_shell_append (GTK_MENU_SHELL (icon->context_menu), item);
+    g_signal_connect (G_OBJECT (item), "activate",
+                      G_CALLBACK (_menu_about_activate), icon);
+    gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
 
     /* Quit */
     item = gtk_image_menu_item_new_from_stock (GTK_STOCK_QUIT, NULL);
-    g_signal_connect (G_OBJECT (item), "activate", G_CALLBACK (status_icon_quit), icon);
-    gtk_menu_shell_append (GTK_MENU_SHELL (icon->context_menu), item);
+    g_signal_connect (G_OBJECT (item), "activate",
+                      G_CALLBACK (_menu_quit_activate), icon);
+    gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
 
-    gtk_widget_show_all (GTK_WIDGET (icon->context_menu));
+    gtk_widget_show_all (GTK_WIDGET (menu));
+
+    return menu;
 }
-
-static void
-invenio_status_icon_init (InvenioStatusIcon *icon)
-{
-    _create_context_menu (icon);
-    icon->search_window = invenio_search_window_new ();
-    gtk_status_icon_set_from_stock (GTK_STATUS_ICON (icon), GTK_STOCK_FIND);
-}
-
-static InvenioStatusIcon *
-invenio_status_icon_new (void)
-{
-    return g_object_new (INVENIO_TYPE_STATUS_ICON, NULL);
-}
-
 
 void
-invenio_status_icon_initialise (void)
+invenio_status_icon_create (void)
 {
     g_return_if_fail (! icon);
 
-    icon = invenio_status_icon_new ();
+    icon = g_new (InvenioStatusIcon, 1);
+    icon->status_icon = gtk_status_icon_new_from_stock (GTK_STOCK_FIND);
+    icon->context_menu = _context_menu_create_for_icon (icon);
+    icon->search_window = invenio_search_window_get_default ();
+
+    g_signal_connect (G_OBJECT (icon->status_icon), "activate",
+                      G_CALLBACK (_icon_activate), icon);
+    g_signal_connect (G_OBJECT (icon->status_icon), "popup-menu",
+                      G_CALLBACK (_icon_popup_menu), icon);
 }
 

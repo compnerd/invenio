@@ -32,7 +32,7 @@
 #define __INVENIO_STATUS_ICON_H__
 
 void
-invenio_status_icon_initialise (void);
+invenio_status_icon_create (void);
 
 #endif
 

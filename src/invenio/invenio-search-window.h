@@ -33,28 +33,8 @@
 
 #include <gtk/gtk.h>
 
-#define INVENIO_TYPE_SEARCH_WINDOW          (invenio_search_window_get_type ())
-#define INVENIO_SEARCH_WINDOW(o)            (G_TYPE_CHECK_INSTANCE_CAST ((o), INVENIO_TYPE_SEARCH_WINDOW, InvenioSearchWindow))
-#define INVENIO_SEARCH_WINDOW_CLASS(c)      (G_TYPE_CHECK_CLASS_CAST ((c), INVENIO_TYPE_SEARCH_WINDOW, InvenioSearchWindow))
-#define INVENIO_IS_SEARCH_WINDOW(o)         (G_TYPE_CHECK_INSTANCE_TYPE ((o), INVENIO_TYPE_SEARCH_WINDOW))
-#define INVENIO_IS_SEARCH_WINDOW_CLASS(c)   (G_TYPE_CHECK_CLASS_TYPE ((c), INVENIO_TYPE_SEARCH_WINDOW))
-#define INVENIO_SEARCH_WINDOW_GET_CLASS(o)  (G_TYPE_INSTANCE_GET_CLASS ((o), INVENIO_TYPE_SEARCH_WINDOW))
-
-typedef struct InvenioSearchWindow
-{
-    GtkWindow parent;
-} InvenioSearchWindow;
-
-typedef struct InvenioSearchWindowClass
-{
-    GtkWindowClass parent;
-} InvenioSearchWindowClass;
-
-GType
-invenio_search_window_get_type (void);
-
 GtkWidget *
-invenio_search_window_new (void);
+invenio_search_window_get_default (void);
 
 #endif
 
