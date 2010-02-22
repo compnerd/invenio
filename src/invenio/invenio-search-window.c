@@ -696,7 +696,7 @@ invenio_search_window_init (InvenioSearchWindow *window)
     gtk_widget_set_size_request (GTK_WIDGET (window),
                                  INVENIO_SEARCH_WINDOW_WIDTH, -1);
 
-    gtk_widget_set_events (GTK_WIDGET (window), GDK_FOCUS_CHANGE_MASK);
+    gtk_widget_add_events (GTK_WIDGET (window), GDK_FOCUS_CHANGE_MASK);
     g_signal_connect (G_OBJECT (window), "focus-out-event",
                       G_CALLBACK (invenio_search_window_focus_out), window);
     g_signal_connect (G_OBJECT (window), "key-press-event",
