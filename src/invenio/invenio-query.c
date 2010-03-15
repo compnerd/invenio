@@ -29,7 +29,7 @@
  **/
 
 #include <glib.h>
-#include <libtracker-client/tracker.h>
+#include <libtracker-client/tracker-client.h>
 
 #include "invenio-query.h"
 #include "invenio-query-result.h"
