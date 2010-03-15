@@ -50,16 +50,35 @@ _icon_activate (GtkStatusIcon   *status_icon,
                 gpointer         user_data)
 {
     GtkWidget *menu;
+    GdkScreen *screen;
     InvenioStatusIcon *icon;
+    gint window_width, window_height;
+    GdkRectangle geometry;
+    gint menu_x, menu_y;
     gboolean pushed_in;
+    gint monitor;
     gint x, y;
+
+    g_return_if_fail (status_icon);
+    g_return_if_fail (GTK_IS_STATUS_ICON (status_icon));
+    g_return_if_fail (user_data);
 
     icon = (InvenioStatusIcon *) user_data;
 
     menu = gtk_menu_new ();
     gtk_status_icon_position_menu (GTK_MENU (menu),
-                                   &x, &y, &pushed_in,
+                                   &menu_x, &menu_y, &pushed_in,
                                    status_icon);
+
+    screen = gtk_status_icon_get_screen (status_icon);
+    monitor = gdk_screen_get_monitor_at_point (screen, menu_x, menu_y);
+    gdk_screen_get_monitor_geometry (screen, monitor, &geometry);
+
+    gtk_window_get_size (GTK_WINDOW (icon->search_window),
+                         &window_width, &window_height);
+
+    x = CLAMP (menu_x, 0, geometry.width - window_width);
+    y = CLAMP (menu_y, 0, geometry.height - window_height);
 
     gtk_window_move (GTK_WINDOW (icon->search_window), x, y);
     gtk_window_present (GTK_WINDOW (icon->search_window));
