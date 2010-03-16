@@ -51,7 +51,7 @@ struct InvenioQuery
 
 static TrackerClient *client;
 
-#define SPARQL_QUERY_HEADER "SELECT ?urn ?title ?description ?uri ?location WHERE { "
+#define SPARQL_QUERY_HEADER "SELECT ?urn ?title ?description ?uri nie:url (?location) WHERE { "
 #define SPARQL_QUERY_FOOTER " } ORDER BY DESC (fts:rank (?urn)) OFFSET 0 LIMIT " G_STRINGIFY (RESULTS_PER_CATEGORY)
 
 static const gchar *queries[INVENIO_CATEGORIES] =
@@ -67,19 +67,24 @@ static const gchar *queries[INVENIO_CATEGORIES] =
     [INVENIO_CATEGORY_BOOKMARK]     =   SPARQL_QUERY_HEADER
                                         " ?urn a nfo:Bookmark ."
                                         " ?urn fts:match \"%s*\" ."
-                                        " ?urn nie:title ?title ."
+                                        " ?urn nie:title ?title ;"
+                                        "      nie:links ?description ;"
+                                        "      nie:links ?uri ."
                                         SPARQL_QUERY_FOOTER,
 
     [INVENIO_CATEGORY_CONTACT]      =   SPARQL_QUERY_HEADER
                                         " ?urn a nco:Contact ."
                                         " ?urn fts:match \"%s*\" ."
-                                        " ?urn nco:fullname ?title ."
+                                        " ?urn nco:fullname ?title ;"
+                                        "      nco:fullname ?description ."
+                                        " OPTIONAL { ?urn nco:emailAddress ?uri }"
                                         SPARQL_QUERY_FOOTER,
 
     [INVENIO_CATEGORY_DOCUMENT]     =   SPARQL_QUERY_HEADER
                                         " ?urn a nfo:Document ."
                                         " ?urn fts:match \"%s*\" ."
                                         " ?urn nfo:fileName ?title ;"
+                                        "      nfo:fileName ?description ;"
                                         "      nie:url ?uri ."
                                         SPARQL_QUERY_FOOTER,
 
@@ -87,19 +92,23 @@ static const gchar *queries[INVENIO_CATEGORIES] =
                                         " ?urn a nfo:Folder ."
                                         " ?urn fts:match \"%s*\" ."
                                         " ?urn nfo:fileName ?title ;"
+                                        "      nfo:fileName ?description ;"
                                         "      nie:url ?uri ."
                                         SPARQL_QUERY_FOOTER,
 
     [INVENIO_CATEGORY_FONT]         =   SPARQL_QUERY_HEADER
                                         " ?urn a nfo:Font ."
                                         " ?urn fts:match \"%s*\" ."
-                                        " ?urn nfo:fontFamily ?title ."
+                                        " ?urn nfo:fontFamily ?title ;"
+                                        "      nfo:fontFamily ?description ;"
+                                        "      nie:url ?uri ."
                                         SPARQL_QUERY_FOOTER,
 
     [INVENIO_CATEGORY_IMAGE]        =   SPARQL_QUERY_HEADER
                                         " ?urn a nfo:Image ."
                                         " ?urn fts:match \"%s*\" ."
                                         " ?urn nfo:fileName ?title ;"
+                                        "      nfo:fileName ?description ;"
                                         "      nie:url ?uri ."
                                         SPARQL_QUERY_FOOTER,
 
@@ -107,6 +116,7 @@ static const gchar *queries[INVENIO_CATEGORIES] =
                                         " ?urn a nmo:Message ."
                                         " ?urn fts:match \"%s*\" ."
                                         " ?urn nie:subject ?title ;"
+                                        "      nie:subject ?description ;"
                                         "      nie:url ?uri ."
                                         SPARQL_QUERY_FOOTER,
 
