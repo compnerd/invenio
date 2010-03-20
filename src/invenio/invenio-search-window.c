@@ -112,11 +112,75 @@ invenio_search_window_select_next_result (InvenioSearchWindow *search_window)
     gtk_tree_selection_select_path (selection, path);
 }
 
-static void
-invenio_search_window_activate_selected_result (InvenioSearchWindow *search_window)
+
+static gboolean
+_uri_is_executable (const gchar * const uri)
 {
-    GtkTreeSelection *selection;
+    gchar *scheme;
+    gboolean executable;
+
+    /*
+     * if there is no scheme or the path is abolute, the URI is probably an
+     * executable.  Because that is not a URI, we need to handle that case
+     * separately.
+     */
+    scheme = g_uri_parse_scheme (uri);
+    executable = (! scheme || g_path_is_absolute (uri));
+    g_free (scheme);
+
+    return executable;
+}
+
+static void
+_launch_uri (const gchar * const uri, GdkScreen *screen)
+{
+    GAppInfo *info;
+    GError *error = NULL;
+    GdkAppLaunchContext *context;
+
+    context = gdk_app_launch_context_new ();
+    gdk_app_launch_context_set_screen (context, screen);
+
+    if (_uri_is_executable (uri))
+    {
+        info = g_app_info_create_from_commandline (uri, NULL, G_APP_INFO_CREATE_NONE, &error);
+        if (error)
+        {
+            g_warning ("Could not create GAppInfo for command '%s': %s",
+                    uri, error->message);
+            g_error_free (error);
+        }
+        else
+        {
+            if (! g_app_info_launch (info, NULL, G_APP_LAUNCH_CONTEXT (context), &error))
+            {
+                g_warning ("Could not launch application for uri '%s': %s",
+                        uri, error->message);
+                g_error_free (error);
+            }
+        }
+        g_object_unref (info);
+    }
+    else
+    {
+        if (! g_app_info_launch_default_for_uri (uri, G_APP_LAUNCH_CONTEXT (context), &error))
+        {
+            g_warning ("Could not launch application for uri '%s': %s",
+                    uri, error->message);
+            g_error_free (error);
+        }
+    }
+
+    g_object_unref (context);
+}
+
+static void
+invenio_search_window_activate_selected_result (InvenioSearchWindow *search_window,
+                                                const gboolean alternate_action)
+{
+    gchar *uri;
     GtkTreePath *path;
+    GtkTreeSelection *selection;
     GtkTreeIter iter;
 
     selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (search_window->results->view));
@@ -124,7 +188,27 @@ invenio_search_window_activate_selected_result (InvenioSearchWindow *search_wind
     if (gtk_tree_selection_get_selected (selection, NULL, &iter))
     {
         path = gtk_tree_model_get_path (GTK_TREE_MODEL (search_window->results->model), &iter);
-        gtk_tree_view_row_activated (GTK_TREE_VIEW (search_window->results->view), path, NULL);
+
+        if (alternate_action)
+        {
+            char *temp;
+
+            gtk_tree_model_get (GTK_TREE_MODEL (search_window->results->model), &iter,
+                                INVENIO_SEARCH_RESULT_COLUMN_LOCATION, &uri, -1);
+
+            temp = g_path_get_dirname (uri);
+            g_free (uri);
+            uri = temp;
+        }
+        else
+        {
+            gtk_tree_model_get (GTK_TREE_MODEL (search_window->results->model), &iter,
+                                INVENIO_SEARCH_RESULT_COLUMN_URI, &uri, -1);
+        }
+
+        _launch_uri (uri, gtk_widget_get_screen (search_window->window));
+
+        g_free (uri);
     }
 }
 
@@ -175,7 +259,8 @@ invenio_search_window_key_press (GtkWidget      *widget,
             return FALSE;
 
         case GDK_Return:
-            invenio_search_window_activate_selected_result (search_window);
+            invenio_search_window_activate_selected_result (search_window,
+                                                            event->state & GDK_CONTROL_MASK);
             return FALSE;
 
         case GDK_Up:
@@ -382,82 +467,6 @@ invenio_search_window_entry_icon_release (GtkEntry              *entry,
     }
 }
 
-static gboolean
-_uri_is_executable (const gchar * const uri)
-{
-    gchar *scheme;
-    gboolean executable;
-
-    /*
-     * if there is no scheme or the path is abolute, the URI is probably an
-     * executable.  Because that is not a URI, we need to handle that case
-     * separately.
-     */
-    scheme = g_uri_parse_scheme (uri);
-    executable = (! scheme || g_path_is_absolute (uri));
-    g_free (scheme);
-
-    return executable;
-}
-
-static void
-invenio_search_window_result_activated (GtkTreeView         *tree_view,
-                                        GtkTreePath         *path,
-                                        GtkTreeViewColumn   *column,
-                                        gpointer             user_data)
-{
-    gchar *uri;
-    GAppInfo *info;
-    GError *error = NULL;
-    GdkAppLaunchContext *context;
-    InvenioSearchWindow *search_window;
-    GtkTreeIter iter;
-
-    search_window = (InvenioSearchWindow *) user_data;
-
-    if (gtk_tree_model_get_iter (GTK_TREE_MODEL (search_window->results->model), &iter, path))
-    {
-        gtk_tree_model_get (GTK_TREE_MODEL (search_window->results->model), &iter,
-                            INVENIO_SEARCH_RESULT_COLUMN_URI, &uri, -1);
-
-        context = gdk_app_launch_context_new ();
-        gdk_app_launch_context_set_screen (context, gtk_widget_get_screen (search_window->window));
-
-        if (_uri_is_executable (uri))
-        {
-            info = g_app_info_create_from_commandline (uri, NULL, G_APP_INFO_CREATE_NONE, &error);
-            if (error)
-            {
-                g_warning ("Could not create GAppInfo for command '%s': %s",
-                           uri, error->message);
-                g_error_free (error);
-            }
-            else
-            {
-                if (! g_app_info_launch (info, NULL, G_APP_LAUNCH_CONTEXT (context), &error))
-                {
-                    g_warning ("Could not launch application for uri '%s': %s",
-                               uri, error->message);
-                    g_error_free (error);
-                }
-            }
-            g_object_unref (info);
-        }
-        else
-        {
-            if (! g_app_info_launch_default_for_uri (uri, G_APP_LAUNCH_CONTEXT (context), &error))
-            {
-                g_warning ("Could not launch application for uri '%s': %s",
-                           uri, error->message);
-                g_error_free (error);
-            }
-        }
-
-        g_object_unref (context);
-        g_free (uri);
-    }
-}
-
 static void
 _category_cell_data (GtkTreeViewColumn  *tree_column,
                      GtkCellRenderer    *cell,
@@ -638,9 +647,6 @@ invenio_search_window_get_default (void)
     gtk_tree_view_set_tooltip_column (GTK_TREE_VIEW (search_window->results->view),
                                       INVENIO_SEARCH_RESULT_COLUMN_DESCRIPTION);
     gtk_widget_set_can_focus (GTK_WIDGET (search_window->results->view), FALSE);
-    g_signal_connect (G_OBJECT (search_window->results->view), "row-activated",
-                      G_CALLBACK (invenio_search_window_result_activated),
-                      search_window);
 
     /* Column: Category */
     column = gtk_tree_view_column_new ();
