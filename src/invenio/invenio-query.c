@@ -115,8 +115,8 @@ static const gchar *queries[INVENIO_CATEGORIES] =
     [INVENIO_CATEGORY_MESSAGE]      =   SPARQL_QUERY_HEADER
                                         " ?urn a nmo:Message ."
                                         " ?urn fts:match \"%s*\" ."
-                                        " ?urn nie:subject ?title ;"
-                                        "      nie:subject ?description ;"
+                                        " ?urn nmo:messageSubject ?title ;"
+                                        "      nmo:messageSubject ?description ;"
                                         "      nie:url ?uri ."
                                         SPARQL_QUERY_FOOTER,
 
