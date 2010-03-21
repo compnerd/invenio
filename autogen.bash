@@ -5,6 +5,7 @@
 : ${AUTOCONF:=autoconf}
 : ${AUTOMAKE:=automake}
 : ${AUTOHEADER:=autoheader}
+: ${LIBTOOLIZE:=libtoolize}
 
 run()
 {
@@ -45,6 +46,7 @@ fi
 run mkdir -p "${srcdir}/config"
 rm -f config.cache
 run "${ACLOCAL}"
+run "${LIBTOOLIZE}" --copy
 run "${AUTOCONF}"
 run "${AUTOHEADER}"
 run "${AUTOMAKE}" --add-missing --copy --foreign
