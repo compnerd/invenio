@@ -30,6 +30,7 @@
 
 #include <gtk/gtk.h>
 
+#include "lash/lash.h"
 #include "invenio-status-icon.h"
 #include "invenio-search-window.h"
 
@@ -39,6 +40,8 @@ typedef struct InvenioStatusIcon
 
     GtkWidget       *context_menu;
     GtkWidget       *search_window;
+
+    LashKeyBinding  *key_binding;
 } InvenioStatusIcon;
 
 
@@ -140,15 +143,25 @@ _context_menu_create_for_icon (InvenioStatusIcon *icon)
     return menu;
 }
 
+static void
+_icon_activate_wrapper (const gchar *string,
+                        gpointer     user_data)
+{
+    _icon_activate (icon->status_icon, icon);
+}
+
 void
 invenio_status_icon_create (void)
 {
     g_return_if_fail (! icon);
 
+    lash_init ();
+
     icon = g_new (InvenioStatusIcon, 1);
     icon->status_icon = gtk_status_icon_new_from_stock (GTK_STOCK_FIND);
     icon->context_menu = _context_menu_create_for_icon (icon);
     icon->search_window = invenio_search_window_get_default ();
+    icon->key_binding = lash_bind ("<ctrl>space", _icon_activate_wrapper, icon);
 
     g_signal_connect (G_OBJECT (icon->status_icon), "activate",
                       G_CALLBACK (_icon_activate), icon);

@@ -14,7 +14,7 @@ src_lash_libash_la_SOURCES = src/lash/lash.c \
 			     $(NULL)
 
 src_invenio_invenio_CFLAGS = $(GTK_CFLAGS) $(GLIB_CFLAGS) $(TRACKER_CFLAGS)
-src_invenio_invenio_LDADD = $(GTK_LIBS) $(GLIB_LIBS) $(TRACKER_LIBS)
+src_invenio_invenio_LDADD = $(GTK_LIBS) $(GLIB_LIBS) $(TRACKER_LIBS) src/lash/libash.la
 src_invenio_invenio_SOURCES = src/invenio/invenio.c               \
 			      src/invenio/invenio-category.c      \
 			      src/invenio/invenio-category.h      \
