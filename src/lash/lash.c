@@ -47,7 +47,7 @@ struct _LashKeyBinding
 };
 
 
-GSList *bindings;
+static GSList *bindings;
 
 
 LashKeyBinding *
