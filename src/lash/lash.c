@@ -49,6 +49,17 @@ struct _LashKeyBinding
 
 static GSList *bindings;
 
+static guint ignored_modifiers[] =
+{
+    GDK_LOCK_MASK,
+    GDK_MOD2_MASK,
+    GDK_MOD3_MASK,
+    GDK_LOCK_MASK | GDK_MOD2_MASK,
+    GDK_LOCK_MASK | GDK_MOD3_MASK,
+    GDK_MOD2_MASK | GDK_MOD3_MASK,
+    GDK_LOCK_MASK | GDK_MOD2_MASK | GDK_MOD3_MASK,
+};
+
 
 LashKeyBinding *
 lash_key_binding_new (const gchar   *string,
@@ -100,20 +111,37 @@ _handle_bindings (GdkXEvent *xevent,
 }
 
 static void
-_GrabKey(const guint    keycode)
+_GrabKey(const guint            keycode,
+         const GdkModifierType  modifiers)
 {
+    guint i;
+
     XGrabKey (GDK_WINDOW_XDISPLAY (gdk_get_default_root_window ()),
-              keycode, AnyModifier,
+              keycode, modifiers,
               GDK_WINDOW_XWINDOW (gdk_get_default_root_window ()),
               True, GrabModeAsync, GrabModeAsync);
+
+    for (i = 0; i < G_N_ELEMENTS (ignored_modifiers); i++)
+        XGrabKey (GDK_WINDOW_XDISPLAY (gdk_get_default_root_window ()),
+                  keycode, modifiers | ignored_modifiers[i],
+                  GDK_WINDOW_XWINDOW (gdk_get_default_root_window ()),
+                  True, GrabModeAsync, GrabModeAsync);
 }
 
 static void
-_UngrabKey(const guint  keycode)
+_UngrabKey(const guint              keycode,
+           const GdkModifierType    modifiers)
 {
+    guint i;
+
     XUngrabKey (GDK_WINDOW_XDISPLAY (gdk_get_default_root_window ()),
-                keycode, AnyModifier,
+                keycode, modifiers,
                 GDK_WINDOW_XWINDOW (gdk_get_default_root_window ()));
+
+    for (i = 0; i < G_N_ELEMENTS (ignored_modifiers); i++)
+        XUngrabKey (GDK_WINDOW_XDISPLAY (gdk_get_default_root_window ()),
+                    keycode, modifiers | ignored_modifiers[i],
+                    GDK_WINDOW_XWINDOW (gdk_get_default_root_window ()));
 }
 
 static gboolean
@@ -164,10 +192,10 @@ keymap_changed (GdkKeymap   *keymap,
     {
         LashKeyBinding *keybinding = (LashKeyBinding *) binding->data;
 
-        _UngrabKey (keybinding->keycode);
+        _UngrabKey (keybinding->keycode, keybinding->modifiers);
 
         if (_map_binding (keybinding, keymap))
-            _GrabKey(keybinding->keycode);
+            _GrabKey(keybinding->keycode, keybinding->modifiers);
     }
 }
 
@@ -204,7 +232,7 @@ lash_bind (const gchar  *string,
         return NULL;
     }
 
-    _GrabKey (binding->keycode);
+    _GrabKey (binding->keycode, binding->modifiers);
 
     bindings = g_slist_prepend (bindings, binding);
 
@@ -214,7 +242,7 @@ lash_bind (const gchar  *string,
 void
 lash_unbind (LashKeyBinding *binding)
 {
-    _UngrabKey(binding->keycode);
+    _UngrabKey(binding->keycode, binding->modifiers);
 
     bindings = g_slist_remove_all (bindings, binding);
 
