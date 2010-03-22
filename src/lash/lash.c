@@ -146,7 +146,7 @@ _UngrabKey(const guint              keycode,
 
 static gboolean
 _map_binding (LashKeyBinding *binding,
-              GdkKeymap     *keymap)
+              GdkKeymap      *keymap)
 {
     GdkKeymapKey *key = NULL;
     GdkModifierType modifiers;
