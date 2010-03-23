@@ -91,8 +91,10 @@ _handle_bindings (GdkXEvent *xevent,
 {
     XEvent *xev;
     GSList *iter;
+    guint state;
 
     xev = (XEvent *) xevent;
+    state = xev->xkey.state & ~(GDK_LOCK_MASK | GDK_MOD2_MASK | GDK_MOD3_MASK);
 
     if (xev->type == KeyPress)
     {
@@ -100,7 +102,7 @@ _handle_bindings (GdkXEvent *xevent,
         {
             LashKeyBinding *binding = (LashKeyBinding *) iter->data;
 
-            if (xev->xkey.keycode == binding->keycode && xev->xkey.state == binding->modifiers)
+            if (xev->xkey.keycode == binding->keycode && state == binding->modifiers)
             {
                 (binding->callback)(binding->string, binding->user_data);
             }
