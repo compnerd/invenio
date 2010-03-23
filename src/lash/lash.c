@@ -156,13 +156,13 @@ _map_binding (LashKeyBinding *binding,
     gtk_accelerator_parse (binding->string, &keyval, &modifiers);
     if (! keyval && ! modifiers)
     {
-        g_printerr ("Unable to rebind '%s' with new keymap", binding->string);
+        g_printerr ("Unable to parse accelerator '%s'", binding->string);
         return FALSE;
     }
 
     if (! gtk_accelerator_valid (keyval, modifiers))
     {
-        g_printerr ("Accelerator '%s' is invalid with new keymap", binding->string);
+        g_printerr ("Accelerator '%s' is invalid with current keymap", binding->string);
         return FALSE;
     }
 
