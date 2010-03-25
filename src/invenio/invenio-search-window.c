@@ -63,6 +63,7 @@ typedef struct InvenioSearchWindow
     GtkWidget               *window;
     GtkWidget               *entry;
     InvenioSearchResults    *results;
+    gboolean                 ignore_updates;
 } InvenioSearchWindow;
 
 
@@ -404,6 +405,9 @@ invenio_search_window_update_results_for_query (InvenioQuery    *query,
         goto out;
     }
 
+    if (search_window->ignore_updates)
+        goto out;
+
     results = invenio_query_get_results (query);
 
     if (results)
@@ -435,9 +439,11 @@ invenio_search_window_entry_changed (GtkEditable    *editable,
         gtk_entry_set_icon_from_stock (GTK_ENTRY (search_window->entry),
                                        GTK_ENTRY_ICON_SECONDARY, NULL);
         invenio_search_window_reset_search (search_window);
+        search_window->ignore_updates = TRUE;
         return;
     }
 
+    search_window->ignore_updates = FALSE;
     gtk_entry_set_icon_from_stock (GTK_ENTRY (search_window->entry),
                                    GTK_ENTRY_ICON_SECONDARY, GTK_STOCK_CLEAR);
 
