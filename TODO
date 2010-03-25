@@ -1,0 +1,11 @@
+<!-- vim: set ft=mkd ts=2 sw=2 tw=80 spell spelllang=en : -->
+
+## TODO
+
+  - improve alignment of search window on multi-monitor setups
+    * shadow is currently split across the monitors
+  - see if there is a better way of mapping the ignored modifiers in lash
+    * currently assumes that GDK\_MOD2\_MASK is NumLock
+  - detect if placed on the bottom panel and rotate search result growth
+    direction
+
