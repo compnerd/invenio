@@ -43,6 +43,7 @@ dnl }}}
 
 dnl {{{ output
 AM_SILENT_RULES(yes)
-AC_OUTPUT(Makefile)
+AC_OUTPUT(Makefile
+          data/invenio.desktop)
 dnl }}}
 

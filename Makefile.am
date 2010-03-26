@@ -4,8 +4,12 @@ ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
 INCLUDES = -I src
 
+desktopdir = $(datadir)/applications
+desktop_in_files = data/invenio.desktop.in
+
 bin_PROGRAMS = src/invenio/invenio
 noinst_LTLIBRARIES = src/lash/libash.la
+desktop_DATA = $(desktop_in_files:.desktop.in=.desktop)
 
 src_lash_libash_la_CFLAGS = $(GTK_CFLAGS) $(X11_CFLAGS)
 src_lash_libash_la_LIBADD = $(GTK_LIBS) $(X11_LIBS)

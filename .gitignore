@@ -22,6 +22,7 @@ tags
 /m4/
 /Makefile.in
 /Makefile
+/data/invenio.desktop
 /src/invenio/invenio
 /src/lash/libash.la
 
