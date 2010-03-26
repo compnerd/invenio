@@ -12,4 +12,6 @@
   - create destroy functions and save the configuration there
   - monitor configuration file and update on binding changes
   - create a simple GUI preferences dialog
+  - create About dialog
+  - try to fetch the application icon for application entries in search results
 
