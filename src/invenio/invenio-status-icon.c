@@ -33,6 +33,7 @@
 #include "lash/lash.h"
 #include "invenio-status-icon.h"
 #include "invenio-search-window.h"
+#include "invenio-configuration.h"
 
 typedef struct InvenioStatusIcon
 {
@@ -153,15 +154,26 @@ _icon_activate_wrapper (const gchar *string,
 void
 invenio_status_icon_create (void)
 {
+    gchar *menu_shortcut;
+
     g_return_if_fail (! icon);
 
     lash_init ();
+    invenio_configuration_load ();
 
     icon = g_new (InvenioStatusIcon, 1);
     icon->status_icon = gtk_status_icon_new_from_stock (GTK_STOCK_FIND);
     icon->context_menu = _context_menu_create_for_icon (icon);
     icon->search_window = invenio_search_window_get_default ();
-    icon->key_binding = lash_bind ("<ctrl>space", _icon_activate_wrapper, icon);
+
+    menu_shortcut = invenio_configuration_get_menu_shortcut ();
+    if (menu_shortcut && g_strcmp0 (menu_shortcut, "") != 0) {
+        icon->key_binding = lash_bind (menu_shortcut, _icon_activate_wrapper, icon);
+        g_free (menu_shortcut);
+    }
+
+    /* TODO create a _destroy and call there */
+    invenio_configuration_save ();
 
     g_signal_connect (G_OBJECT (icon->status_icon), "activate",
                       G_CALLBACK (_icon_activate), icon);

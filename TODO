@@ -8,6 +8,8 @@
     * currently assumes that GDK\_MOD2\_MASK is NumLock
   - detect if placed on the bottom panel and rotate search result growth
     direction
-  - add configuration (GKeyFile-based) for bindings and enabling alternate actions
   - fix search window behaviour with alt+drag (make the window a GTK\_POPUP\_WINDOW)
+  - create destroy functions and save the configuration there
+  - monitor configuration file and update on binding changes
+  - create a simple GUI preferences dialog
 

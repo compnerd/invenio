@@ -22,6 +22,8 @@ src_invenio_invenio_LDADD = $(GTK_LIBS) $(GLIB_LIBS) $(TRACKER_LIBS) src/lash/li
 src_invenio_invenio_SOURCES = src/invenio/invenio.c               \
 			      src/invenio/invenio-category.c      \
 			      src/invenio/invenio-category.h      \
+			      src/invenio/invenio-configuration.c \
+			      src/invenio/invenio-configuration.h \
 			      src/invenio/invenio-query.c         \
 			      src/invenio/invenio-query.h         \
 			      src/invenio/invenio-query-result.c  \
