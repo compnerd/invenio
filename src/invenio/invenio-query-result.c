@@ -87,6 +87,9 @@ invenio_query_result_free (InvenioQueryResult *result)
     if (result->uri)
         g_free (result->uri);
 
+    if (result->location)
+        g_free (result->location);
+
     g_slice_free (InvenioQueryResult, result);
 }
 
