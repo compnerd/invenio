@@ -14,4 +14,6 @@
   - create a simple GUI preferences dialog
   - create About dialog
   - try to fetch the application icon for application entries in search results
+  - add options for displayed categories
+  - display count of total hits across all categories
 
