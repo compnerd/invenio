@@ -51,7 +51,7 @@ struct InvenioQuery
 
 static TrackerClient *client;
 
-#define SPARQL_QUERY_HEADER "SELECT ?urn ?title ?description ?uri ?location WHERE { "
+#define SPARQL_QUERY_HEADER "SELECT ?title ?description ?uri ?location WHERE { "
 #define SPARQL_QUERY_FOOTER " } ORDER BY DESC (fts:rank (?urn)) OFFSET 0 LIMIT " G_STRINGIFY (RESULTS_PER_CATEGORY)
 
 static const gchar *queries[INVENIO_CATEGORIES] =
@@ -193,11 +193,10 @@ query_collect_result (gpointer  data,
 
     query->results =
         g_slist_append (query->results,
-                        invenio_query_result_new (metadata[0],      /* urn */
-                                                  metadata[1],      /* title */
-                                                  metadata[2],      /* description */
-                                                  metadata[3],      /* uri */
-                                                  metadata[4]));    /* location */
+                        invenio_query_result_new (metadata[0],      /* title */
+                                                  metadata[1],      /* description */
+                                                  metadata[2],      /* uri */
+                                                  metadata[3]));    /* location */
 }
 
 static void

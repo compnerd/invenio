@@ -39,17 +39,6 @@
 
 #define INVENIO_SEARCH_WINDOW_WIDTH             (340)
 
-typedef enum InvenioSearchResultColumn
-{
-    INVENIO_SEARCH_RESULT_COLUMN_URN,
-    INVENIO_SEARCH_RESULT_COLUMN_CATEGORY,
-    INVENIO_SEARCH_RESULT_COLUMN_ICON,
-    INVENIO_SEARCH_RESULT_COLUMN_TITLE,
-    INVENIO_SEARCH_RESULT_COLUMN_DESCRIPTION,
-    INVENIO_SEARCH_RESULT_COLUMN_URI,
-    INVENIO_SEARCH_RESULT_COLUMN_LOCATION,
-    INVENIO_SEARCH_RESULT_COLUMNS,
-} InvenioSearchResultColumn;
 
 typedef struct InvenioSearchResults
 {
@@ -65,6 +54,17 @@ typedef struct InvenioSearchWindow
     InvenioSearchResults    *results;
     gboolean                 ignore_updates;
 } InvenioSearchWindow;
+
+typedef enum InvenioSearchResultColumn
+{
+    INVENIO_SEARCH_RESULT_COLUMN_CATEGORY,
+    INVENIO_SEARCH_RESULT_COLUMN_ICON,
+    INVENIO_SEARCH_RESULT_COLUMN_TITLE,
+    INVENIO_SEARCH_RESULT_COLUMN_DESCRIPTION,
+    INVENIO_SEARCH_RESULT_COLUMN_URI,
+    INVENIO_SEARCH_RESULT_COLUMN_LOCATION,
+    INVENIO_SEARCH_RESULT_COLUMNS,
+} InvenioSearchResultColumn;
 
 
 static void
@@ -282,7 +282,6 @@ _insert_result (GtkListStore        *store,
                 InvenioQueryResult  *result)
 {
     gtk_list_store_set (store, iter,
-                        INVENIO_SEARCH_RESULT_COLUMN_URN, invenio_query_result_get_urn (result),
                         INVENIO_SEARCH_RESULT_COLUMN_CATEGORY, category,
                         INVENIO_SEARCH_RESULT_COLUMN_TITLE, invenio_query_result_get_title (result),
                         INVENIO_SEARCH_RESULT_COLUMN_DESCRIPTION, invenio_query_result_get_description (result),
@@ -638,7 +637,6 @@ invenio_search_window_get_default (void)
 
     search_window->results->model =
         gtk_list_store_new (INVENIO_SEARCH_RESULT_COLUMNS,
-                            G_TYPE_STRING,          /* URN */
                             G_TYPE_INT,             /* category */
                             GDK_TYPE_PIXBUF,        /* icon */
                             G_TYPE_STRING,          /* title */

@@ -42,8 +42,7 @@ struct InvenioQueryResult
 };
 
 InvenioQueryResult *
-invenio_query_result_new (const gchar * const urn,
-                          const gchar * const title,
+invenio_query_result_new (const gchar * const title,
                           const gchar * const description,
                           const gchar * const uri,
                           const gchar * const location)
@@ -53,9 +52,6 @@ invenio_query_result_new (const gchar * const urn,
     result = g_slice_new0 (InvenioQueryResult);
 
     /* XXX Is there a more robust way to check for undefined values? */
-
-    if (strcmp (urn, "urn_u") != 0)
-        result->urn = g_strdup (urn);
 
     if (strcmp (title, "title_u") != 0)
         result->title = g_strdup (title);
@@ -75,9 +71,6 @@ invenio_query_result_new (const gchar * const urn,
 void
 invenio_query_result_free (InvenioQueryResult *result)
 {
-    if (result->urn)
-        g_free (result->urn);
-
     if (result->title)
         g_free (result->title);
 
@@ -93,11 +86,6 @@ invenio_query_result_free (InvenioQueryResult *result)
     g_slice_free (InvenioQueryResult, result);
 }
 
-const gchar *
-invenio_query_result_get_urn (const InvenioQueryResult * const result)
-{
-    return result->urn;
-}
 
 const gchar *
 invenio_query_result_get_title (const InvenioQueryResult * const result)
