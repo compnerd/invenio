@@ -656,6 +656,9 @@ invenio_search_window_get_default (void)
                             COLUMN_TYPE(INVENIO_SEARCH_RESULT_COLUMN_DESCRIPTION),
                             COLUMN_TYPE(INVENIO_SEARCH_RESULT_COLUMN_URI),
                             COLUMN_TYPE(INVENIO_SEARCH_RESULT_COLUMN_LOCATION));
+    gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (search_window->results->model),
+                                          INVENIO_SEARCH_RESULT_COLUMN_CATEGORY,
+                                          GTK_SORT_ASCENDING);
 
     search_window->results->view =
         gtk_tree_view_new_with_model (GTK_TREE_MODEL (search_window->results->model));
