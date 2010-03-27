@@ -67,6 +67,19 @@ typedef enum InvenioSearchResultColumn
 } InvenioSearchResultColumn;
 
 
+static const GType InvenioSearchResultColumnType[INVENIO_SEARCH_RESULT_COLUMNS] =
+{
+    [INVENIO_SEARCH_RESULT_COLUMN_CATEGORY]     = G_TYPE_INT,
+    [INVENIO_SEARCH_RESULT_COLUMN_ICON]         = G_TYPE_OBJECT,
+    [INVENIO_SEARCH_RESULT_COLUMN_TITLE]        = G_TYPE_STRING,
+    [INVENIO_SEARCH_RESULT_COLUMN_DESCRIPTION]  = G_TYPE_STRING,
+    [INVENIO_SEARCH_RESULT_COLUMN_URI]          = G_TYPE_STRING,
+    [INVENIO_SEARCH_RESULT_COLUMN_LOCATION]     = G_TYPE_STRING,
+};
+
+#define COLUMN_TYPE(column)                     (InvenioSearchResultColumnType[(column)])
+
+
 static void
 invenio_search_window_reset_search (InvenioSearchWindow *search_window)
 {
@@ -637,12 +650,12 @@ invenio_search_window_get_default (void)
 
     search_window->results->model =
         gtk_list_store_new (INVENIO_SEARCH_RESULT_COLUMNS,
-                            G_TYPE_INT,             /* category */
-                            GDK_TYPE_PIXBUF,        /* icon */
-                            G_TYPE_STRING,          /* title */
-                            G_TYPE_STRING,          /* description */
-                            G_TYPE_STRING,          /* URI */
-                            G_TYPE_STRING);         /* location */
+                            COLUMN_TYPE(INVENIO_SEARCH_RESULT_COLUMN_CATEGORY),
+                            COLUMN_TYPE(INVENIO_SEARCH_RESULT_COLUMN_ICON),
+                            COLUMN_TYPE(INVENIO_SEARCH_RESULT_COLUMN_TITLE),
+                            COLUMN_TYPE(INVENIO_SEARCH_RESULT_COLUMN_DESCRIPTION),
+                            COLUMN_TYPE(INVENIO_SEARCH_RESULT_COLUMN_URI),
+                            COLUMN_TYPE(INVENIO_SEARCH_RESULT_COLUMN_LOCATION));
 
     search_window->results->view =
         gtk_tree_view_new_with_model (GTK_TREE_MODEL (search_window->results->model));
