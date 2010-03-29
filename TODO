@@ -9,6 +9,8 @@
   - detect if placed on the bottom panel and rotate search result growth
     direction
   - fix search window behaviour with alt+drag (make the window a GTK\_POPUP\_WINDOW)
+    * potentially use override redirect
+    * potentially use SubstructureRedirectMask and ignore ConfigureRequest
   - create destroy functions and save the configuration there
   - monitor configuration file and update on binding changes
   - create a simple GUI preferences dialog
