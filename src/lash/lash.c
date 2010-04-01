@@ -61,7 +61,7 @@ static guint ignored_modifiers[] =
 };
 
 
-LashKeyBinding *
+static LashKeyBinding *
 lash_key_binding_new (const gchar   *string,
                       LashCallback   callback,
                       gpointer       user_data)
@@ -76,7 +76,7 @@ lash_key_binding_new (const gchar   *string,
     return binding;
 }
 
-void
+static void
 lash_key_binding_free (LashKeyBinding *binding)
 {
     g_free ((gchar *) binding->string);
