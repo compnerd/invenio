@@ -32,8 +32,8 @@
 
 #include <gio/gio.h>
 
-#define INVENIO_CONFIGURATION_KEYFILE               "invenio.cfg"
-#define INVENIO_CONFIGURATION_GROUP                 "general"
+#define INVENIO_CONFIGURATION_KEYFILE                   "invenio.cfg"
+#define INVENIO_CONFIGURATION_GROUP                     "general"
 
 #define INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY         "menu-shortcut"
 #define INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY_VALUE   "<ctrl>space"
@@ -57,7 +57,8 @@ _load_defaults (void)
     if (! g_key_file_has_key (configuration->keyfile,
                               INVENIO_CONFIGURATION_GROUP,
                               INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY,
-                              NULL)) {
+                              NULL))
+    {
         g_key_file_set_comment (configuration->keyfile,
                                 INVENIO_CONFIGURATION_GROUP,
                                 INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY,
@@ -79,8 +80,10 @@ invenio_configuration_load (void)
 
     directory = g_build_filename (g_get_user_config_dir (), "invenio", NULL);
 
-    if (! g_file_test (directory, G_FILE_TEST_EXISTS)) {
-        if (g_mkdir_with_parents (directory, 0700) == -1) {
+    if (! g_file_test (directory, G_FILE_TEST_EXISTS))
+    {
+        if (g_mkdir_with_parents (directory, 0700) == -1)
+        {
             g_critical ("Could not create configuration directory");
             g_free (directory);
             return;
@@ -88,7 +91,6 @@ invenio_configuration_load (void)
     }
 
     filename = g_build_filename (directory, INVENIO_CONFIGURATION_KEYFILE, NULL);
-    g_free (directory);
 
     if (! configuration)
     {
@@ -97,20 +99,17 @@ invenio_configuration_load (void)
         configuration->keyfile = g_key_file_new ();
     }
 
-    if (g_file_test (filename, G_FILE_TEST_EXISTS)) {
-        g_key_file_load_from_file (configuration->keyfile, filename,
-                                   G_KEY_FILE_KEEP_COMMENTS | G_KEY_FILE_KEEP_TRANSLATIONS,
-                                   &error);
-    }
+    g_key_file_load_from_file (configuration->keyfile, filename,
+                               G_KEY_FILE_KEEP_COMMENTS | G_KEY_FILE_KEEP_TRANSLATIONS,
+                               &error);
 
-    if (error) {
-        configuration->dirty = TRUE;
+    if (error)
         g_error_free (error);
-    }
 
     _load_defaults ();
 
     g_free (filename);
+    g_free (directory);
 }
 
 gchar *
@@ -120,15 +119,10 @@ invenio_configuration_get_menu_shortcut (void)
 
     g_return_val_if_fail (configuration, NULL);
 
-    value = g_key_file_get_string (configuration->keyfile,
-                                   INVENIO_CONFIGURATION_GROUP,
-                                   INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY,
-                                   NULL);
-
-    if (! value)
-        value = g_strdup (INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY_VALUE);
-
-    return value;
+    return g_key_file_get_string (configuration->keyfile,
+                                  INVENIO_CONFIGURATION_GROUP,
+                                  INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY,
+                                  NULL);
 }
 
 void
@@ -144,7 +138,8 @@ invenio_configuration_save (void)
         return;
 
     data = g_key_file_to_data (configuration->keyfile, &size, &error);
-    if (error) {
+    if (error)
+    {
         g_warning ("Unable to save configuration: %s", error->message);
         g_error_free (error);
         return;
@@ -153,10 +148,11 @@ invenio_configuration_save (void)
     filename = g_file_get_path (configuration->file);
 
     g_file_set_contents (filename, data, size, &error);
-    if (error) {
+    if (error)
+    {
         g_warning ("Unable to save configuration: %s", error->message);
         g_error_free (error);
-        /* continue to exit */
+        /* fall-through */
     }
 
     g_free (data);
