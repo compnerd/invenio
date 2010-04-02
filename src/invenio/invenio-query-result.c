@@ -34,7 +34,6 @@
 
 struct InvenioQueryResult
 {
-    gchar *urn;
     gchar *title;
     gchar *description;
     gchar *uri;
