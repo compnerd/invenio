@@ -190,13 +190,17 @@ query_collect_result (gpointer  data,
      * the output is determined by the SELECT order.  The select order is
      * defined in the SPARQL_QUERY_HEADER macro above.
      */
+    /*
+     * TODO: Convert metadata indexing to enum+macro to get some additional
+     * safety when the query results change.
+     */
 
     query->results =
-        g_slist_append (query->results,
-                        invenio_query_result_new (metadata[0],      /* title */
-                                                  metadata[1],      /* description */
-                                                  metadata[2],      /* uri */
-                                                  metadata[3]));    /* location */
+        g_slist_prepend (query->results,
+                         invenio_query_result_new (metadata[0],     /* title */
+                                                   metadata[1],     /* description */
+                                                   metadata[2],     /* uri */
+                                                   metadata[3]));   /* location */
 }
 
 static void
@@ -207,16 +211,12 @@ query_collect_results (GPtrArray    *results,
     InvenioQuery *query;
 
     query = (InvenioQuery *) user_data;
-
-    if (error)
-    {
-        query->error = g_error_copy (error);
-        g_error_free (error);
-    }
+    query->error = error;
 
     if (! error && results)
     {
         g_ptr_array_foreach (results, query_collect_result, query);
+        query->results = g_slist_reverse (query->results);
 
         g_ptr_array_foreach (results, (GFunc) g_strfreev, NULL);
         g_ptr_array_free (results, TRUE);
