@@ -612,17 +612,14 @@ _icon_cell_data (GtkTreeViewColumn  *tree_column,
     g_free (uri);
 }
 
-GtkWidget *
-invenio_search_window_get_default (void)
+static InvenioSearchWindow *
+invenio_search_window_create (void)
 {
-    static InvenioSearchWindow *search_window;
+    InvenioSearchWindow *search_window;
     GtkWidget *label, *hbox, *vbox;
     GtkTreeViewColumn *column;
     GtkCellRenderer *cell;
     WnckScreen *screen;
-
-    if (search_window)
-        return search_window->window;
 
     search_window = g_new (InvenioSearchWindow, 1);
 
@@ -727,6 +724,19 @@ invenio_search_window_get_default (void)
     gtk_container_add (GTK_CONTAINER (search_window->window), vbox);
 
     gtk_widget_realize (GTK_WIDGET (search_window->window));
+
+    return search_window;
+}
+
+GtkWidget *
+invenio_search_window_get_default (void)
+{
+    static InvenioSearchWindow *search_window;
+
+    if (search_window)
+        return search_window->window;
+
+    search_window = invenio_search_window_create ();
 
     return search_window->window;
 }
