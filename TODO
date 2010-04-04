@@ -18,5 +18,4 @@
   - try to fetch the application icon for application entries in search results
   - add options for displayed categories
   - display count of total hits across all categories
-  - fix search window positioning (WMs are free to ignore gtk\_window\_move)
 

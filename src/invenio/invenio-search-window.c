@@ -611,6 +611,8 @@ invenio_search_window_get_default (void)
 
     /* XXX This should be GTK_WINDOW_POPUP, but that does not behave */
     search_window->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+    gtk_window_set_type_hint (GTK_WINDOW (search_window->window),
+                              GDK_WINDOW_TYPE_HINT_UTILITY);
     /* XXX The following 2 should not be required when GTK_WINDOW_POPUP works */
     gtk_window_set_decorated (GTK_WINDOW (search_window->window), FALSE);
     gtk_window_set_skip_taskbar_hint (GTK_WINDOW (search_window->window), TRUE);
