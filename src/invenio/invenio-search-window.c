@@ -30,6 +30,9 @@
 
 #include <string.h>
 
+#include <X11/Xlib.h>
+
+#include <gdk/gdkx.h>
 #include <gdk/gdkkeysyms.h>
 
 #include <libwnck/libwnck.h>
@@ -288,6 +291,15 @@ invenio_search_window_key_press (GtkWidget      *widget,
     }
 
     return GTK_WIDGET_GET_CLASS (search_window->window)->key_press_event (widget, event);
+}
+
+static void
+invenio_search_window_map (GtkWidget    *widget,
+                           gpointer      user_data)
+{
+    XSetInputFocus (GDK_WINDOW_XDISPLAY (gtk_widget_get_window (widget)),
+                    GDK_WINDOW_XWINDOW (gtk_widget_get_window (widget)),
+                    RevertToPointerRoot, CurrentTime);
 }
 
 static void
@@ -637,8 +649,12 @@ invenio_search_window_create (void)
     g_signal_connect (G_OBJECT (search_window->window), "focus-out-event",
                       G_CALLBACK (invenio_search_window_focus_out),
                       search_window);
+
     g_signal_connect (G_OBJECT (search_window->window), "key-press-event",
                       G_CALLBACK (invenio_search_window_key_press),
+                      search_window);
+    g_signal_connect (G_OBJECT (search_window->window), "map-event",
+                      G_CALLBACK (invenio_search_window_map),
                       search_window);
 
     screen = wnck_screen_get_default ();
