@@ -32,6 +32,8 @@
 
 #include <gdk/gdkkeysyms.h>
 
+#include <libwnck/libwnck.h>
+
 #include "invenio-query.h"
 #include "invenio-category.h"
 #include "invenio-query-result.h"
@@ -286,6 +288,20 @@ invenio_search_window_key_press (GtkWidget      *widget,
     }
 
     return GTK_WIDGET_GET_CLASS (search_window->window)->key_press_event (widget, event);
+}
+
+static void
+invenio_search_window_active_workspace_changed (WnckScreen      *screen,
+                                                WnckWorkspace   *previously_active_space,
+                                                gpointer         user_data)
+{
+    InvenioSearchWindow *search_window;
+
+    search_window = (InvenioSearchWindow *) user_data;
+
+    /* XXX Should this reset or just hide? */
+    gtk_widget_hide (search_window->window);
+    invenio_search_window_reset_search (search_window);
 }
 
 static void
@@ -603,6 +619,7 @@ invenio_search_window_get_default (void)
     GtkWidget *label, *hbox, *vbox;
     GtkTreeViewColumn *column;
     GtkCellRenderer *cell;
+    WnckScreen *screen;
 
     if (search_window)
         return search_window->window;
@@ -627,6 +644,11 @@ invenio_search_window_get_default (void)
                       search_window);
     g_signal_connect (G_OBJECT (search_window->window), "key-press-event",
                       G_CALLBACK (invenio_search_window_key_press),
+                      search_window);
+
+    screen = wnck_screen_get_default ();
+    g_signal_connect (G_OBJECT (screen), "active-workspace-changed",
+                      G_CALLBACK (invenio_search_window_active_workspace_changed),
                       search_window);
 
     /* label */

@@ -17,8 +17,8 @@ src_lash_libash_la_SOURCES = src/lash/lash.c \
 			     src/lash/lash.h \
 			     $(NULL)
 
-src_invenio_invenio_CFLAGS = $(GTK_CFLAGS) $(GLIB_CFLAGS) $(TRACKER_CFLAGS)
-src_invenio_invenio_LDADD = $(GTK_LIBS) $(GLIB_LIBS) $(TRACKER_LIBS) src/lash/libash.la
+src_invenio_invenio_CFLAGS = $(GTK_CFLAGS) $(GLIB_CFLAGS) $(TRACKER_CFLAGS) $(LIBWNCK_CFLAGS) -DWNCK_I_KNOW_THIS_IS_UNSTABLE
+src_invenio_invenio_LDADD = $(GTK_LIBS) $(GLIB_LIBS) $(TRACKER_LIBS) $(LIBWNCK_LIBS) src/lash/libash.la
 src_invenio_invenio_SOURCES = src/invenio/invenio.c               \
 			      src/invenio/invenio-category.c      \
 			      src/invenio/invenio-category.h      \
