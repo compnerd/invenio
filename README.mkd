@@ -1,0 +1,15 @@
+<!-- vim: set ft=mkd ts=2 sw=2 tw=80 spell spelllang=en : -->
+
+Invenio is a Notification Area Search Applet.  It displays a small icon in the
+notification area, which when clicked, provides a little search dialog, allowing
+you to find documents, music, images, applications using keywords.
+
+The search dialog can also be activated using the default keybinding of
+<ctrl>space.  You can change this by editing the configuration file in
+$XDG\_CONFIG\_DIR/invenio/invenio.cfg.
+
+The current indexing backend is tracker, though, it should be fairly easy to add
+support for other indexing backends.
+
+Patches to fix bugs or TODO items are more than welcome.
+
