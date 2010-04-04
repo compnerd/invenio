@@ -85,6 +85,7 @@ _icon_activate (GtkStatusIcon   *status_icon,
     y = CLAMP (menu_y, 0, geometry.height - window_height);
 
     gtk_window_move (GTK_WINDOW (icon->search_window), x, y);
+    gtk_window_set_keep_above (GTK_WINDOW (icon->search_window), TRUE);
     gtk_window_present (GTK_WINDOW (icon->search_window));
 
     g_object_ref_sink (menu);
