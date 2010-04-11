@@ -8,6 +8,7 @@ desktopdir = $(datadir)/applications
 desktop_in_files = data/invenio.desktop.in
 
 bin_PROGRAMS = src/invenio/invenio
+noinst_PROGRAMS = src/invenio-preferences/invenio-preferences
 noinst_LTLIBRARIES = src/lash/libash.la src/libinvenio/libinvenio.la
 desktop_DATA = $(desktop_in_files:.desktop.in=.desktop)
 
@@ -37,6 +38,13 @@ src_invenio_invenio_SOURCES = src/invenio/invenio.c               \
 			      src/invenio/invenio-status-icon.c   \
 			      src/invenio/invenio-status-icon.h   \
 			      $(NULL)
+
+src_invenio_preferences_invenio_preferences_CFLAGS = $(GTK_CFLAGS) $(GLIB_CFLAGS)
+src_invenio_preferences_invenio_preferences_LDADD = $(GTK_LIBS) $(GLIB_LIBS) src/libinvenio/libinvenio.la
+src_invenio_preferences_invenio_preferences_SOURCES = src/invenio-preferences/invenio-preferences.c            \
+						      src/invenio-preferences/invenio-preferences-dialog.c     \
+						      src/invenio-preferences/invenio-preferences-dialog.h     \
+						      $(NULL)
 
 MAINTAINERCLEANFILES = aclocal.m4 configure Makefile.in
 
