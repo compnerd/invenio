@@ -32,6 +32,7 @@
 #define __INVENIO_CATEGORIES_H__
 
 #include <glib.h>
+#include <gdk/gdk.h>
 
 typedef enum InvenioCategory
 {
@@ -50,6 +51,9 @@ typedef enum InvenioCategory
 
 const gchar *
 invenio_category_to_string (const InvenioCategory category);
+
+GdkPixbuf *
+invenio_category_to_pixbuf (const InvenioCategory category);
 
 #endif
 

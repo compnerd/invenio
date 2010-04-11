@@ -17,8 +17,8 @@ src_lash_libash_la_SOURCES = src/lash/lash.c \
 			     src/lash/lash.h \
 			     $(NULL)
 
-src_libinvenio_libinvenio_la_CFLAGS = $(GLIB_CFLAGS)
-src_libinvenio_libinvenio_la_LIBADD = $(GLIB_LIBS)
+src_libinvenio_libinvenio_la_CFLAGS = $(GTK_CFLAGS) $(GLIB_CFLAGS)
+src_libinvenio_libinvenio_la_LIBADD = $(GTK_LIBS) $(GLIB_LIBS)
 src_libinvenio_libinvenio_la_SOURCES = src/libinvenio/invenio-category.c        \
 				       src/libinvenio/invenio-category.h        \
 				       $(NULL)

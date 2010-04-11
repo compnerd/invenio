@@ -28,7 +28,23 @@
  * OF SUCH DAMAGE.
  **/
 
+#include <gtk/gtk.h>
+
 #include "invenio-category.h"
+
+static const gchar * const InvenioCategoryIconName[INVENIO_CATEGORIES] =
+{
+    [INVENIO_CATEGORY_APPLICATION]  = "application-x-executable",
+    [INVENIO_CATEGORY_BOOKMARK]     = "user-bookmarks",
+    [INVENIO_CATEGORY_CONTACT]      = "x-office-address-book",
+    [INVENIO_CATEGORY_DOCUMENT]     = "x-office-document",
+    [INVENIO_CATEGORY_FOLDER]       = "folder",
+    [INVENIO_CATEGORY_FONT]         = "font-x-generic",
+    [INVENIO_CATEGORY_IMAGE]        = "image-x-generic",
+    [INVENIO_CATEGORY_MESSAGE]      = "text-x-generic",
+    [INVENIO_CATEGORY_MUSIC]        = "audio-x-generic",
+    [INVENIO_CATEGORY_VIDEO]        = "video-x-generic",
+};
 
 const gchar *
 invenio_category_to_string (const InvenioCategory category)
@@ -60,5 +76,30 @@ invenio_category_to_string (const InvenioCategory category)
     }
 
     g_assert_not_reached ();
+}
+
+GdkPixbuf *
+invenio_category_to_pixbuf (const InvenioCategory category)
+{
+    GdkPixbuf *pixbuf = NULL;
+    GtkIconInfo *icon_info;
+    gint height, width;
+    gint size = 16;
+
+    if (gtk_icon_size_lookup (GTK_ICON_SIZE_SMALL_TOOLBAR, &height, &width))
+        size = MIN(height, width);
+
+    icon_info = gtk_icon_theme_lookup_icon (gtk_icon_theme_get_default (),
+                                            InvenioCategoryIconName[category],
+                                            size,
+                                            GTK_ICON_LOOKUP_USE_BUILTIN | GTK_ICON_LOOKUP_GENERIC_FALLBACK);
+
+    if (icon_info)
+    {
+        pixbuf = gtk_icon_info_load_icon (icon_info, NULL);
+        gtk_icon_info_free (icon_info);
+    }
+
+    return pixbuf;
 }
 
