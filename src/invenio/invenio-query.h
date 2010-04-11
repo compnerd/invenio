@@ -33,7 +33,7 @@
 
 #include <glib.h>
 
-#include "invenio-category.h"
+#include "libinvenio/invenio-category.h"
 
 typedef struct InvenioQuery InvenioQuery;
 typedef void (*InvenioQueryCompleted)(InvenioQuery *query, GError *error, gpointer user_data);

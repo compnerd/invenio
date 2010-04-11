@@ -8,7 +8,7 @@ desktopdir = $(datadir)/applications
 desktop_in_files = data/invenio.desktop.in
 
 bin_PROGRAMS = src/invenio/invenio
-noinst_LTLIBRARIES = src/lash/libash.la
+noinst_LTLIBRARIES = src/lash/libash.la src/libinvenio/libinvenio.la
 desktop_DATA = $(desktop_in_files:.desktop.in=.desktop)
 
 src_lash_libash_la_CFLAGS = $(GTK_CFLAGS) $(X11_CFLAGS)
@@ -17,11 +17,15 @@ src_lash_libash_la_SOURCES = src/lash/lash.c \
 			     src/lash/lash.h \
 			     $(NULL)
 
+src_libinvenio_libinvenio_la_CFLAGS = $(GLIB_CFLAGS)
+src_libinvenio_libinvenio_la_LIBADD = $(GLIB_LIBS)
+src_libinvenio_libinvenio_la_SOURCES = src/libinvenio/invenio-category.c        \
+				       src/libinvenio/invenio-category.h        \
+				       $(NULL)
+
 src_invenio_invenio_CFLAGS = $(GTK_CFLAGS) $(GLIB_CFLAGS) $(TRACKER_CFLAGS) $(LIBWNCK_CFLAGS) -DWNCK_I_KNOW_THIS_IS_UNSTABLE
-src_invenio_invenio_LDADD = $(GTK_LIBS) $(GLIB_LIBS) $(TRACKER_LIBS) $(LIBWNCK_LIBS) src/lash/libash.la
+src_invenio_invenio_LDADD = $(GTK_LIBS) $(GLIB_LIBS) $(TRACKER_LIBS) $(LIBWNCK_LIBS) src/lash/libash.la src/libinvenio/libinvenio.la
 src_invenio_invenio_SOURCES = src/invenio/invenio.c               \
-			      src/invenio/invenio-category.c      \
-			      src/invenio/invenio-category.h      \
 			      src/invenio/invenio-configuration.c \
 			      src/invenio/invenio-configuration.h \
 			      src/invenio/invenio-query.c         \

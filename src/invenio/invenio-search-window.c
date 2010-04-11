@@ -38,9 +38,10 @@
 #include <libwnck/libwnck.h>
 
 #include "invenio-query.h"
-#include "invenio-category.h"
 #include "invenio-query-result.h"
 #include "invenio-search-window.h"
+
+#include "libinvenio/invenio-category.h"
 
 #define INVENIO_SEARCH_WINDOW_WIDTH             (340)
 

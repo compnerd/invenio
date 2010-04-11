@@ -25,4 +25,5 @@ tags
 /data/invenio.desktop
 /src/invenio/invenio
 /src/lash/libash.la
+/src/libinvenio/libinvenio.la
 
