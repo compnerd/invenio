@@ -33,7 +33,7 @@
 #include "lash/lash.h"
 #include "invenio-status-icon.h"
 #include "invenio-search-window.h"
-#include "invenio-configuration.h"
+#include "libinvenio/invenio-configuration.h"
 
 typedef struct InvenioStatusIcon
 {

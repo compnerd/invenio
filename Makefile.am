@@ -21,13 +21,13 @@ src_libinvenio_libinvenio_la_CFLAGS = $(GTK_CFLAGS) $(GLIB_CFLAGS)
 src_libinvenio_libinvenio_la_LIBADD = $(GTK_LIBS) $(GLIB_LIBS)
 src_libinvenio_libinvenio_la_SOURCES = src/libinvenio/invenio-category.c        \
 				       src/libinvenio/invenio-category.h        \
+				       src/libinvenio/invenio-configuration.c   \
+				       src/libinvenio/invenio-configuration.h   \
 				       $(NULL)
 
 src_invenio_invenio_CFLAGS = $(GTK_CFLAGS) $(GLIB_CFLAGS) $(TRACKER_CFLAGS) $(LIBWNCK_CFLAGS) -DWNCK_I_KNOW_THIS_IS_UNSTABLE
 src_invenio_invenio_LDADD = $(GTK_LIBS) $(GLIB_LIBS) $(TRACKER_LIBS) $(LIBWNCK_LIBS) src/lash/libash.la src/libinvenio/libinvenio.la
 src_invenio_invenio_SOURCES = src/invenio/invenio.c               \
-			      src/invenio/invenio-configuration.c \
-			      src/invenio/invenio-configuration.h \
 			      src/invenio/invenio-query.c         \
 			      src/invenio/invenio-query.h         \
 			      src/invenio/invenio-query-result.c  \
