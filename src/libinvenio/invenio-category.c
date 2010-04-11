@@ -84,9 +84,9 @@ invenio_category_to_pixbuf (const InvenioCategory category)
     GdkPixbuf *pixbuf = NULL;
     GtkIconInfo *icon_info;
     gint height, width;
-    gint size = 16;
+    gint size = -1;
 
-    if (gtk_icon_size_lookup (GTK_ICON_SIZE_SMALL_TOOLBAR, &height, &width))
+    if (gtk_icon_size_lookup (GTK_ICON_SIZE_BUTTON, &height, &width))
         size = MIN(height, width);
 
     icon_info = gtk_icon_theme_lookup_icon (gtk_icon_theme_get_default (),
