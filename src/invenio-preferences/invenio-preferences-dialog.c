@@ -206,6 +206,7 @@ invenio_preferences_create (void)
     gtk_tree_view_set_enable_search (GTK_TREE_VIEW (preferences->view), FALSE);
     gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (preferences->view), FALSE);
     gtk_tree_view_set_grid_lines (GTK_TREE_VIEW (preferences->view), GTK_TREE_VIEW_GRID_LINES_VERTICAL);
+    gtk_tree_view_set_reorderable (GTK_TREE_VIEW (preferences->view), TRUE);
 
     /* Column: Index */
     column = gtk_tree_view_column_new ();
