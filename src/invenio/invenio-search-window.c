@@ -57,8 +57,8 @@ typedef struct InvenioSearchWindow
 {
     GtkWidget               *window;
     GtkWidget               *entry;
+    InvenioQuery            *query;
     InvenioSearchResults    *results;
-    gboolean                 ignore_updates;
 } InvenioSearchWindow;
 
 typedef enum InvenioSearchResultColumn
@@ -89,6 +89,12 @@ static const GType InvenioSearchResultColumnType[INVENIO_SEARCH_RESULT_COLUMNS] 
 static void
 invenio_search_window_reset_search (InvenioSearchWindow *search_window)
 {
+    if (search_window->query)
+    {
+        invenio_query_free (search_window->query);
+        search_window->query = NULL;
+    }
+
     gtk_entry_set_text (GTK_ENTRY (search_window->entry), "");
     gtk_list_store_clear (search_window->results->model);
     search_window->results->count = 0;
@@ -428,9 +434,10 @@ invenio_search_window_clear_results_for_category (InvenioSearchWindow   *search_
 }
 
 static void
-invenio_search_window_update_results_for_query (InvenioQuery    *query,
-                                                GError          *error,
-                                                gpointer         user_data)
+invenio_search_window_update_results_for_query (InvenioQuery            *query,
+                                                const InvenioCategory    category,
+                                                GError                  *error,
+                                                gpointer                 user_data)
 {
     const GSList *results;
     InvenioSearchWindow *search_window;
@@ -440,27 +447,18 @@ invenio_search_window_update_results_for_query (InvenioQuery    *query,
     if (error)
     {
         g_critical ("Failed to execute query for category '%s': %s",
-                    invenio_category_to_string (invenio_query_get_category (query)),
+                    invenio_category_to_string (category),
                     error->message);
         g_error_free (error);
-        goto out;
+        return;
     }
 
-    if (search_window->ignore_updates)
-        goto out;
-
-    results = invenio_query_get_results (query);
+    results = invenio_query_get_results_for_category (query, category);
 
     if (results)
-        invenio_search_window_update_results_for_category (search_window,
-                                                           invenio_query_get_category (query),
-                                                           results);
+        invenio_search_window_update_results_for_category (search_window, category, results);
     else
-        invenio_search_window_clear_results_for_category (search_window,
-                                                          invenio_query_get_category (query));
-
-out:
-    invenio_query_free (query);
+        invenio_search_window_clear_results_for_category (search_window, category);
 }
 
 static void
@@ -469,7 +467,6 @@ invenio_search_window_entry_changed (GtkEditable    *editable,
 {
     const gchar *search;
     InvenioSearchWindow *search_window;
-    InvenioCategory category;
 
     search_window = (InvenioSearchWindow *) user_data;
 
@@ -480,18 +477,22 @@ invenio_search_window_entry_changed (GtkEditable    *editable,
         gtk_entry_set_icon_from_stock (GTK_ENTRY (search_window->entry),
                                        GTK_ENTRY_ICON_SECONDARY, NULL);
         invenio_search_window_reset_search (search_window);
-        search_window->ignore_updates = TRUE;
         return;
     }
 
-    search_window->ignore_updates = FALSE;
+    if (search_window->query)
+    {
+        invenio_query_free (search_window->query);
+        search_window->query = NULL;
+    }
+
     gtk_entry_set_icon_from_stock (GTK_ENTRY (search_window->entry),
                                    GTK_ENTRY_ICON_SECONDARY, GTK_STOCK_CLEAR);
 
-    for (category = (InvenioCategory) 0; category != INVENIO_CATEGORIES; ++category)
-        invenio_query_execute_async (invenio_query_new (category, search),
-                                     invenio_search_window_update_results_for_query,
-                                     search_window);
+    search_window->query = invenio_query_new (search);
+    invenio_query_execute_async (search_window->query,
+                                 invenio_search_window_update_results_for_query,
+                                 search_window);
 }
 
 static void
@@ -634,7 +635,7 @@ invenio_search_window_create (void)
     GtkCellRenderer *cell;
     WnckScreen *screen;
 
-    search_window = g_new (InvenioSearchWindow, 1);
+    search_window = g_new0 (InvenioSearchWindow, 1);
 
     search_window->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_window_set_type_hint (GTK_WINDOW (search_window->window),
@@ -746,7 +747,7 @@ invenio_search_window_create (void)
 GtkWidget *
 invenio_search_window_get_default (void)
 {
-    static InvenioSearchWindow *search_window;
+    static InvenioSearchWindow *search_window = NULL;
 
     if (search_window)
         return search_window->window;

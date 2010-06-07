@@ -36,11 +36,10 @@
 #include "libinvenio/invenio-category.h"
 
 typedef struct InvenioQuery InvenioQuery;
-typedef void (*InvenioQueryCompleted)(InvenioQuery *query, GError *error, gpointer user_data);
+typedef void (*InvenioQueryCompleted)(InvenioQuery *query, const InvenioCategory category, GError *error, gpointer user_data);
 
 InvenioQuery *
-invenio_query_new (const InvenioCategory category,
-                   const gchar * const keywords);
+invenio_query_new (const gchar * const keywords);
 
 void
 invenio_query_free (InvenioQuery *query);
@@ -50,11 +49,12 @@ invenio_query_execute_async (InvenioQuery           *query,
                              InvenioQueryCompleted   callback,
                              gpointer                user_data);
 
-const InvenioCategory
-invenio_query_get_category (const InvenioQuery * const query);
+void
+invenio_query_cancel (InvenioQuery *query);
 
 const GSList *
-invenio_query_get_results (const InvenioQuery * const query);
+invenio_query_get_results_for_category (const InvenioQuery * const query,
+                                        const InvenioCategory      category);
 
 #endif
 

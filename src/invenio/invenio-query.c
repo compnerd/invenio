@@ -34,19 +34,34 @@
 #include "invenio-query.h"
 #include "invenio-query-result.h"
 
+
 #define RESULTS_PER_CATEGORY        4
+
+
+typedef struct InvenioTrackerQuery
+{
+    gchar                   *query;
+    guint                    id;
+    gboolean                 valid;
+
+    GSList                  *results;
+} InvenioTrackerQuery;
 
 struct InvenioQuery
 {
-    gchar                   *string;
-    InvenioCategory          category;
+    InvenioTrackerQuery      queries[INVENIO_CATEGORIES];
 
     InvenioQueryCompleted    callback;
     gpointer                 user_data;
 
     GError                  *error;
-    GSList                  *results;
 };
+
+typedef struct InvenioQueryRequest
+{
+    InvenioQuery            *query;
+    InvenioCategory          category;
+} InvenioQueryRequest;
 
 
 static TrackerClient *client;
@@ -149,15 +164,18 @@ static const gchar *queries[INVENIO_CATEGORIES] =
 
 
 InvenioQuery *
-invenio_query_new (const InvenioCategory category,
-                   const gchar * const keywords)
+invenio_query_new (const gchar * const keywords)
 {
     InvenioQuery *query;
+    InvenioCategory category;
 
     query = g_slice_new0 (InvenioQuery);
 
-    query->string = g_strdup_printf (queries[category], keywords);
-    query->category = category;
+    for (category = (InvenioCategory) 0; category != INVENIO_CATEGORIES; category++)
+    {
+        query->queries[category].query = g_strdup_printf (queries[category], keywords);
+        query->queries[category].valid = FALSE;
+    }
 
     return query;
 }
@@ -165,12 +183,20 @@ invenio_query_new (const InvenioCategory category,
 void
 invenio_query_free (InvenioQuery *query)
 {
-    g_free (query->string);
+    InvenioCategory category;
+
+    for (category = (InvenioCategory) 0; category != INVENIO_CATEGORIES; category++)
+    {
+        if (query->queries[category].valid)
+            tracker_cancel_call (client, query->queries[category].id);
+
+        g_free (query->queries[category].query);
+        g_slist_foreach (query->queries[category].results, (GFunc) invenio_query_result_free, NULL);
+
+    }
 
     if (query->error)
         g_error_free (query->error);
-
-    g_slist_foreach (query->results, (GFunc) invenio_query_result_free, NULL);
 
     g_slice_free (InvenioQuery, query);
 }
@@ -179,11 +205,15 @@ static void
 query_collect_result (gpointer  data,
                       gpointer  user_data)
 {
-    InvenioQuery *query;
     const gchar **metadata;
+    InvenioQueryRequest *request;
+    InvenioQuery *query;
+    InvenioCategory category;
 
-    query = (InvenioQuery *) user_data;
     metadata = (const gchar **) data;
+    request = (InvenioQueryRequest *) user_data;
+    query = request->query;
+    category = request->category;
 
     /*
      * NOTE: Metadata content is determined by the SPARQL query.  The order of
@@ -195,8 +225,8 @@ query_collect_result (gpointer  data,
      * safety when the query results change.
      */
 
-    query->results =
-        g_slist_prepend (query->results,
+    query->queries[category].results =
+        g_slist_prepend (query->queries[category].results,
                          invenio_query_result_new (metadata[0],     /* title */
                                                    metadata[1],     /* description */
                                                    metadata[2],     /* uri */
@@ -208,21 +238,28 @@ query_collect_results (GPtrArray    *results,
                        GError       *error,
                        gpointer      user_data)
 {
+    InvenioQueryRequest *request;
     InvenioQuery *query;
+    InvenioCategory category;
 
-    query = (InvenioQuery *) user_data;
+    request = (InvenioQueryRequest *) user_data;
+    query = request->query;
+    category = request->category;
+
     query->error = error;
+    query->queries[category].valid = FALSE;
 
     if (! error && results)
     {
-        g_ptr_array_foreach (results, query_collect_result, query);
-        query->results = g_slist_reverse (query->results);
+        g_ptr_array_foreach (results, query_collect_result, request);
+        query->queries[category].results = g_slist_reverse (query->queries[category].results);
 
         g_ptr_array_foreach (results, (GFunc) g_strfreev, NULL);
         g_ptr_array_free (results, TRUE);
     }
 
-    query->callback (query, query->error, query->user_data);
+    g_slice_free (InvenioQueryRequest, request);
+    query->callback (query, category, query->error, query->user_data);
 }
 
 void
@@ -230,25 +267,48 @@ invenio_query_execute_async (InvenioQuery           *query,
                              InvenioQueryCompleted   callback,
                              gpointer                user_data)
 {
+    InvenioQueryRequest *request;
+    InvenioCategory category;
+
     query->callback = callback;
     query->user_data = user_data;
 
     if (G_UNLIKELY (! client))
         client = tracker_client_new (TRACKER_CLIENT_ENABLE_WARNINGS, G_MAXINT);
 
-    tracker_resources_sparql_query_async (client, query->string,
-                                          query_collect_results, query);
+    for (category = (InvenioCategory) 0; category != INVENIO_CATEGORIES; category++)
+    {
+        request = g_slice_new0 (InvenioQueryRequest);
+
+        request->query = query;
+        request->category = category;
+
+        query->queries[category].id =
+            tracker_resources_sparql_query_async (client, query->queries[category].query,
+                                                  query_collect_results, request);
+        query->queries[category].valid = TRUE;
+    }
 }
 
-const InvenioCategory
-invenio_query_get_category (const InvenioQuery * const query)
+void
+invenio_query_cancel (InvenioQuery *query)
 {
-    return query->category;
+    InvenioCategory category;
+
+    for (category = (InvenioCategory) 0; category != INVENIO_CATEGORIES; category++)
+    {
+        if (query->queries[category].valid)
+        {
+            tracker_cancel_call (client, query->queries[category].id);
+            query->queries[category].valid = FALSE;
+        }
+    }
 }
 
 const GSList *
-invenio_query_get_results (const InvenioQuery * const query)
+invenio_query_get_results_for_category (const InvenioQuery * const query,
+                                        const InvenioCategory      category)
 {
-    return query->results;
+    return query->queries[category].results;
 }
 
