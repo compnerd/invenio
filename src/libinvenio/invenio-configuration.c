@@ -115,8 +115,6 @@ invenio_configuration_load (void)
 gchar *
 invenio_configuration_get_menu_shortcut (void)
 {
-    gchar *value;
-
     g_return_val_if_fail (configuration, NULL);
 
     return g_key_file_get_string (configuration->keyfile,
