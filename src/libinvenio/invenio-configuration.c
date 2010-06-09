@@ -33,7 +33,7 @@
 #include <gio/gio.h>
 
 #define INVENIO_CONFIGURATION_KEYFILE                   "invenio.cfg"
-#define INVENIO_CONFIGURATION_GROUP                     "general"
+#define INVENIO_CONFIGURATION_GENERAL                   "general"
 
 #define INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY         "menu-shortcut"
 #define INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY_VALUE   "<ctrl>space"
@@ -55,17 +55,17 @@ static void
 _load_defaults (void)
 {
     if (! g_key_file_has_key (configuration->keyfile,
-                              INVENIO_CONFIGURATION_GROUP,
+                              INVENIO_CONFIGURATION_GENERAL,
                               INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY,
                               NULL))
     {
         g_key_file_set_comment (configuration->keyfile,
-                                INVENIO_CONFIGURATION_GROUP,
+                                INVENIO_CONFIGURATION_GENERAL,
                                 INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY,
                                 INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY_COMMENT,
                                 NULL);
         g_key_file_set_string (configuration->keyfile,
-                               INVENIO_CONFIGURATION_GROUP,
+                               INVENIO_CONFIGURATION_GENERAL,
                                INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY,
                                INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY_VALUE);
         configuration->dirty = TRUE;
@@ -120,7 +120,7 @@ invenio_configuration_get_menu_shortcut (void)
     g_return_val_if_fail (configuration, NULL);
 
     return g_key_file_get_string (configuration->keyfile,
-                                  INVENIO_CONFIGURATION_GROUP,
+                                  INVENIO_CONFIGURATION_GENERAL,
                                   INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY,
                                   NULL);
 }
