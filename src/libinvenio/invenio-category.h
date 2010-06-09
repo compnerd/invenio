@@ -52,6 +52,9 @@ typedef enum InvenioCategory
 const gchar *
 invenio_category_to_string (const InvenioCategory category);
 
+InvenioCategory
+invenio_category_from_string (const gchar * const category);
+
 GdkPixbuf *
 invenio_category_to_pixbuf (const InvenioCategory category);
 

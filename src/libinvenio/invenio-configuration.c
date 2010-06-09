@@ -34,10 +34,14 @@
 
 #define INVENIO_CONFIGURATION_KEYFILE                   "invenio.cfg"
 #define INVENIO_CONFIGURATION_GENERAL                   "general"
+#define INVENIO_CONFIGURATION_SEARCH                    "search"
 
 #define INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY         "menu-shortcut"
 #define INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY_VALUE   "<ctrl>space"
 #define INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY_COMMENT "Search menu shortcut key (default: " G_STRINGIFY (INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY_VALUE) ")"
+
+#define INVENIO_CONFIGURATION_SEARCH_CATEGORIES         "search-categories"
+#define INVENIO_CONFIGURATION_SEARCH_CATEGORIES_COMMENT "Categories to get results from"
 
 
 typedef struct InvenioConfiguration
@@ -69,6 +73,34 @@ _load_defaults (void)
                                INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY,
                                INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY_VALUE);
         configuration->dirty = TRUE;
+    }
+
+    if (! g_key_file_has_key (configuration->keyfile,
+                              INVENIO_CONFIGURATION_SEARCH,
+                              INVENIO_CONFIGURATION_SEARCH_CATEGORIES,
+                              NULL))
+    {
+        const gchar **search_categories;
+        InvenioCategory category;
+
+        search_categories = g_malloc0 (sizeof (gchar *) * INVENIO_CATEGORIES);
+
+        for (category = (InvenioCategory) 0; category != INVENIO_CATEGORIES; category++)
+            search_categories[category] = invenio_category_to_string (category);
+
+        g_key_file_set_comment (configuration->keyfile,
+                                INVENIO_CONFIGURATION_SEARCH,
+                                INVENIO_CONFIGURATION_SEARCH_CATEGORIES,
+                                INVENIO_CONFIGURATION_SEARCH_CATEGORIES_COMMENT,
+                                NULL);
+        g_key_file_set_string_list (configuration->keyfile,
+                                    INVENIO_CONFIGURATION_SEARCH,
+                                    INVENIO_CONFIGURATION_SEARCH_CATEGORIES,
+                                    search_categories,
+                                    INVENIO_CATEGORIES);
+        configuration->dirty = TRUE;
+
+        g_free (search_categories);
     }
 }
 
@@ -121,6 +153,32 @@ invenio_configuration_get_menu_shortcut (void)
                                   INVENIO_CONFIGURATION_GENERAL,
                                   INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY,
                                   NULL);
+}
+
+guint
+invenio_configuration_get_search_categories (InvenioCategory **categories)
+{
+    gchar **search_categories;
+    gchar **category;
+    gsize entries;
+    int i;
+
+    g_return_val_if_fail (categories, 0);
+    *categories = NULL;
+    g_return_val_if_fail (configuration, 0);
+
+    search_categories = g_key_file_get_string_list (configuration->keyfile,
+                                                    INVENIO_CONFIGURATION_SEARCH,
+                                                    INVENIO_CONFIGURATION_SEARCH_CATEGORIES,
+                                                    &entries,
+                                                    NULL);
+
+    *categories = g_new (InvenioCategory, entries);
+
+    for (category = search_categories; *category; category++)
+        (*categories)[i++] = invenio_category_from_string (*category);
+
+    return entries;
 }
 
 void

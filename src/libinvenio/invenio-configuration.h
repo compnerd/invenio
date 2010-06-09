@@ -33,11 +33,16 @@
 
 #include <glib.h>
 
+#include "invenio-category.h"
+
 void
 invenio_configuration_load (void);
 
 gchar *
 invenio_configuration_get_menu_shortcut (void);
+
+guint
+invenio_configuration_get_search_categories (InvenioCategory **categories);
 
 void
 invenio_configuration_save (void);

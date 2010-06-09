@@ -28,6 +28,8 @@
  * OF SUCH DAMAGE.
  **/
 
+#include <string.h>
+
 #include <gtk/gtk.h>
 
 #include "invenio-category.h"
@@ -46,36 +48,36 @@ static const gchar * const InvenioCategoryIconName[INVENIO_CATEGORIES] =
     [INVENIO_CATEGORY_VIDEO]        = "video-x-generic",
 };
 
+static const gchar * const InvenioCategoryString[INVENIO_CATEGORIES] =
+{
+    [INVENIO_CATEGORY_APPLICATION]  = "Applications",
+    [INVENIO_CATEGORY_BOOKMARK]     = "Bookmarks",
+    [INVENIO_CATEGORY_CONTACT]      = "Contacts",
+    [INVENIO_CATEGORY_DOCUMENT]     = "Documents",
+    [INVENIO_CATEGORY_FOLDER]       = "Folders",
+    [INVENIO_CATEGORY_FONT]         = "Fonts",
+    [INVENIO_CATEGORY_IMAGE]        = "Images",
+    [INVENIO_CATEGORY_MESSAGE]      = "Messages",
+    [INVENIO_CATEGORY_MUSIC]        = "Music",
+    [INVENIO_CATEGORY_VIDEO]        = "Videos",
+};
+
 const gchar *
 invenio_category_to_string (const InvenioCategory category)
 {
-    switch (category)
-    {
-        case INVENIO_CATEGORY_APPLICATION:
-            return "Applications";
-        case INVENIO_CATEGORY_BOOKMARK:
-            return "Bookmarks";
-        case INVENIO_CATEGORY_CONTACT:
-            return "Contacts";
-        case INVENIO_CATEGORY_DOCUMENT:
-            return "Documents";
-        case INVENIO_CATEGORY_FOLDER:
-            return "Folders";
-        case INVENIO_CATEGORY_FONT:
-            return "Fonts";
-        case INVENIO_CATEGORY_IMAGE:
-            return "Images";
-        case INVENIO_CATEGORY_MESSAGE:
-            return "Messages";
-        case INVENIO_CATEGORY_MUSIC:
-            return "Music";
-        case INVENIO_CATEGORY_VIDEO:
-            return "Videos";
-        case INVENIO_CATEGORIES:
-            g_assert_not_reached ();
-    }
+    return InvenioCategoryString[category];
+}
 
-    g_assert_not_reached ();
+InvenioCategory
+invenio_category_from_string (const gchar * const category)
+{
+    int i;
+
+    for (i = 0; i < INVENIO_CATEGORIES; i++)
+        if (strcmp (InvenioCategoryString[i], category) == 0)
+            return (InvenioCategory) i;
+
+    return INVENIO_CATEGORIES;
 }
 
 GdkPixbuf *
