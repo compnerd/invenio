@@ -49,33 +49,34 @@ typedef struct InvenioConfiguration
     GFile       *file;
     GKeyFile    *keyfile;
     gboolean     dirty;
+    gboolean     loaded;
 } InvenioConfiguration;
 
 
-static InvenioConfiguration *configuration;
+static InvenioConfiguration configuration;
 
 
 static void
 _load_defaults (void)
 {
-    if (! g_key_file_has_key (configuration->keyfile,
+    if (! g_key_file_has_key (configuration.keyfile,
                               INVENIO_CONFIGURATION_GENERAL,
                               INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY,
                               NULL))
     {
-        g_key_file_set_comment (configuration->keyfile,
+        g_key_file_set_comment (configuration.keyfile,
                                 INVENIO_CONFIGURATION_GENERAL,
                                 INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY,
                                 INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY_COMMENT,
                                 NULL);
-        g_key_file_set_string (configuration->keyfile,
+        g_key_file_set_string (configuration.keyfile,
                                INVENIO_CONFIGURATION_GENERAL,
                                INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY,
                                INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY_VALUE);
-        configuration->dirty = TRUE;
+        configuration.dirty = TRUE;
     }
 
-    if (! g_key_file_has_key (configuration->keyfile,
+    if (! g_key_file_has_key (configuration.keyfile,
                               INVENIO_CONFIGURATION_SEARCH,
                               INVENIO_CONFIGURATION_SEARCH_CATEGORIES,
                               NULL))
@@ -88,17 +89,17 @@ _load_defaults (void)
         for (category = (InvenioCategory) 0; category != INVENIO_CATEGORIES; category++)
             search_categories[category] = invenio_category_to_string (category);
 
-        g_key_file_set_comment (configuration->keyfile,
+        g_key_file_set_comment (configuration.keyfile,
                                 INVENIO_CONFIGURATION_SEARCH,
                                 INVENIO_CONFIGURATION_SEARCH_CATEGORIES,
                                 INVENIO_CONFIGURATION_SEARCH_CATEGORIES_COMMENT,
                                 NULL);
-        g_key_file_set_string_list (configuration->keyfile,
+        g_key_file_set_string_list (configuration.keyfile,
                                     INVENIO_CONFIGURATION_SEARCH,
                                     INVENIO_CONFIGURATION_SEARCH_CATEGORIES,
                                     search_categories,
                                     INVENIO_CATEGORIES);
-        configuration->dirty = TRUE;
+        configuration.dirty = TRUE;
 
         g_free (search_categories);
     }
@@ -107,8 +108,8 @@ _load_defaults (void)
 void
 invenio_configuration_load (void)
 {
-    GError *error = NULL;
     gchar *directory, *filename;
+    GError *error = NULL;
 
     directory = g_build_filename (g_get_user_config_dir (), "invenio", NULL);
 
@@ -124,19 +125,21 @@ invenio_configuration_load (void)
 
     filename = g_build_filename (directory, INVENIO_CONFIGURATION_KEYFILE, NULL);
 
-    if (! configuration)
+    if (! configuration.loaded)
     {
-        configuration = g_new0 (InvenioConfiguration, 1);
-        configuration->file = g_file_new_for_path (filename);
-        configuration->keyfile = g_key_file_new ();
+        configuration.loaded = TRUE;
+        configuration.file = g_file_new_for_path (filename);
+        configuration.keyfile = g_key_file_new ();
     }
 
-    g_key_file_load_from_file (configuration->keyfile, filename,
+
+    g_key_file_load_from_file (configuration.keyfile, filename,
                                G_KEY_FILE_KEEP_COMMENTS | G_KEY_FILE_KEEP_TRANSLATIONS,
                                &error);
 
     if (error)
         g_error_free (error);
+
 
     _load_defaults ();
 
@@ -147,9 +150,7 @@ invenio_configuration_load (void)
 gchar *
 invenio_configuration_get_menu_shortcut (void)
 {
-    g_return_val_if_fail (configuration, NULL);
-
-    return g_key_file_get_string (configuration->keyfile,
+    return g_key_file_get_string (configuration.keyfile,
                                   INVENIO_CONFIGURATION_GENERAL,
                                   INVENIO_CONFIGURATION_MENU_SHORTCUT_KEY,
                                   NULL);
@@ -165,9 +166,8 @@ invenio_configuration_get_search_categories (InvenioCategory **categories)
 
     g_return_val_if_fail (categories, 0);
     *categories = NULL;
-    g_return_val_if_fail (configuration, 0);
 
-    search_categories = g_key_file_get_string_list (configuration->keyfile,
+    search_categories = g_key_file_get_string_list (configuration.keyfile,
                                                     INVENIO_CONFIGURATION_SEARCH,
                                                     INVENIO_CONFIGURATION_SEARCH_CATEGORIES,
                                                     &entries,
@@ -188,12 +188,10 @@ invenio_configuration_save (void)
     gchar *filename, *data;
     gsize size;
 
-    g_return_if_fail (configuration);
-
-    if (! configuration->dirty)
+    if (! configuration.dirty)
         return;
 
-    data = g_key_file_to_data (configuration->keyfile, &size, &error);
+    data = g_key_file_to_data (configuration.keyfile, &size, &error);
     if (error)
     {
         g_warning ("Unable to save configuration: %s", error->message);
@@ -201,7 +199,7 @@ invenio_configuration_save (void)
         return;
     }
 
-    filename = g_file_get_path (configuration->file);
+    filename = g_file_get_path (configuration.file);
 
     g_file_set_contents (filename, data, size, &error);
     if (error)
