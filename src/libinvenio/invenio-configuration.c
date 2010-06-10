@@ -46,10 +46,16 @@
 
 typedef struct InvenioConfiguration
 {
-    GFile       *file;
-    GKeyFile    *keyfile;
-    gboolean     dirty;
-    gboolean     loaded;
+    gboolean         loaded;
+
+    GFile           *file;
+    GKeyFile        *keyfile;
+    gboolean         dirty;
+
+    struct
+    {
+        gboolean     category_enabled[INVENIO_CATEGORIES];
+    } cache;
 } InvenioConfiguration;
 
 
@@ -87,7 +93,10 @@ _load_defaults (void)
         search_categories = g_malloc0 (sizeof (gchar *) * INVENIO_CATEGORIES);
 
         for (category = (InvenioCategory) 0; category != INVENIO_CATEGORIES; category++)
+        {
             search_categories[category] = invenio_category_to_string (category);
+            configuration.cache.category_enabled[category] = TRUE;
+        }
 
         g_key_file_set_comment (configuration.keyfile,
                                 INVENIO_CONFIGURATION_SEARCH,
@@ -108,8 +117,10 @@ _load_defaults (void)
 void
 invenio_configuration_load (void)
 {
+    gchar **search_categories, **category;
     gchar *directory, *filename;
     GError *error = NULL;
+    gsize entries;
 
     directory = g_build_filename (g_get_user_config_dir (), "invenio", NULL);
 
@@ -143,6 +154,19 @@ invenio_configuration_load (void)
 
     _load_defaults ();
 
+
+    search_categories = g_key_file_get_string_list (configuration.keyfile,
+                                                    INVENIO_CONFIGURATION_SEARCH,
+                                                    INVENIO_CONFIGURATION_SEARCH_CATEGORIES,
+                                                    &entries,
+                                                    NULL);
+
+    for (category = search_categories; entries && *category; category++, entries--)
+        configuration.cache.category_enabled[invenio_category_from_string (*category)] = TRUE;
+
+
+    g_strfreev (search_categories);
+
     g_free (filename);
     g_free (directory);
 }
@@ -156,29 +180,10 @@ invenio_configuration_get_menu_shortcut (void)
                                   NULL);
 }
 
-guint
-invenio_configuration_get_search_categories (InvenioCategory **categories)
+gboolean
+invenio_configuration_get_search_category (const InvenioCategory category)
 {
-    gchar **search_categories;
-    gchar **category;
-    gsize entries;
-    int i;
-
-    g_return_val_if_fail (categories, 0);
-    *categories = NULL;
-
-    search_categories = g_key_file_get_string_list (configuration.keyfile,
-                                                    INVENIO_CONFIGURATION_SEARCH,
-                                                    INVENIO_CONFIGURATION_SEARCH_CATEGORIES,
-                                                    &entries,
-                                                    NULL);
-
-    *categories = g_new (InvenioCategory, entries);
-
-    for (category = search_categories; *category; category++)
-        (*categories)[i++] = invenio_category_from_string (*category);
-
-    return entries;
+    return configuration.cache.category_enabled[category];
 }
 
 void

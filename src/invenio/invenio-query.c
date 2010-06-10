@@ -270,9 +270,7 @@ invenio_query_execute_async (InvenioQuery           *query,
                              gpointer                user_data)
 {
     InvenioQueryRequest *request;
-    InvenioCategory *categories;
     InvenioCategory category;
-    guint i, count;
 
     query->callback = callback;
     query->user_data = user_data;
@@ -280,24 +278,21 @@ invenio_query_execute_async (InvenioQuery           *query,
     if (G_UNLIKELY (! client))
         client = tracker_client_new (TRACKER_CLIENT_ENABLE_WARNINGS, G_MAXINT);
 
-    count = invenio_configuration_get_search_categories (&categories);
-
-    for (i = 0; i < count; i++)
+    for (category = (InvenioCategory) 0; category != INVENIO_CATEGORIES; category++)
     {
-        category = categories[i];
+        if (invenio_configuration_get_search_category (category))
+        {
+            request = g_slice_new0 (InvenioQueryRequest);
 
-        request = g_slice_new0 (InvenioQueryRequest);
+            request->query = query;
+            request->category = category;
 
-        request->query = query;
-        request->category = category;
-
-        query->queries[category].id =
-            tracker_resources_sparql_query_async (client, query->queries[category].query,
-                                                  query_collect_results, request);
-        query->queries[category].valid = TRUE;
+            query->queries[category].id =
+                tracker_resources_sparql_query_async (client, query->queries[category].query,
+                                                      query_collect_results, request);
+            query->queries[category].valid = TRUE;
+        }
     }
-
-    g_free (categories);
 }
 
 void

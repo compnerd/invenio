@@ -41,8 +41,8 @@ invenio_configuration_load (void);
 gchar *
 invenio_configuration_get_menu_shortcut (void);
 
-guint
-invenio_configuration_get_search_categories (InvenioCategory **categories);
+gboolean
+invenio_configuration_get_search_category (const InvenioCategory category);
 
 void
 invenio_configuration_save (void);

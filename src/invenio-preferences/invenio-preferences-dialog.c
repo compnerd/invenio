@@ -159,7 +159,7 @@ _load (InvenioPreferences *preferences)
         gtk_list_store_append (GTK_LIST_STORE (preferences->model), &iter);
         gtk_list_store_set (GTK_LIST_STORE (preferences->model), &iter,
                             INVENIO_PREFERENCES_CATEGORY_COLUMN_INDEX, i,
-                            INVENIO_PREFERENCES_CATEGORY_COLUMN_ENABLED, TRUE,
+                            INVENIO_PREFERENCES_CATEGORY_COLUMN_ENABLED, invenio_configuration_get_search_category (category),
                             INVENIO_PREFERENCES_CATEGORY_COLUMN_ICON, NULL,
                             INVENIO_PREFERENCES_CATEGORY_COLUMN_CATEGORY, category,
                             -1);
