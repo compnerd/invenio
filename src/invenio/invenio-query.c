@@ -34,6 +34,8 @@
 #include "invenio-query.h"
 #include "invenio-query-result.h"
 
+#include "libinvenio/invenio-configuration.h"
+
 
 #define RESULTS_PER_CATEGORY        4
 
@@ -268,7 +270,9 @@ invenio_query_execute_async (InvenioQuery           *query,
                              gpointer                user_data)
 {
     InvenioQueryRequest *request;
+    InvenioCategory *categories;
     InvenioCategory category;
+    guint i, count;
 
     query->callback = callback;
     query->user_data = user_data;
@@ -276,8 +280,12 @@ invenio_query_execute_async (InvenioQuery           *query,
     if (G_UNLIKELY (! client))
         client = tracker_client_new (TRACKER_CLIENT_ENABLE_WARNINGS, G_MAXINT);
 
-    for (category = (InvenioCategory) 0; category != INVENIO_CATEGORIES; category++)
+    count = invenio_configuration_get_search_categories (&categories);
+
+    for (i = 0; i < count; i++)
     {
+        category = categories[i];
+
         request = g_slice_new0 (InvenioQueryRequest);
 
         request->query = query;
@@ -288,6 +296,8 @@ invenio_query_execute_async (InvenioQuery           *query,
                                                   query_collect_results, request);
         query->queries[category].valid = TRUE;
     }
+
+    g_free (categories);
 }
 
 void
