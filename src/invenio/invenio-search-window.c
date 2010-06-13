@@ -235,6 +235,10 @@ invenio_search_window_activate_selected_result (InvenioSearchWindow *search_wind
         _launch_uri (uri, gtk_widget_get_screen (search_window->window));
 
         g_free (uri);
+
+        /* XXX Should this reset or just hide? */
+        gtk_widget_hide (search_window->window);
+        invenio_search_window_reset_search (search_window);
     }
 }
 
