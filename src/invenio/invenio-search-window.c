@@ -34,6 +34,7 @@
 
 #include <gdk/gdkx.h>
 #include <gdk/gdkkeysyms.h>
+#include <gdk/gdkkeysyms-compat.h>
 
 #include <libwnck/libwnck.h>
 
@@ -308,8 +309,14 @@ static void
 invenio_search_window_map (GtkWidget    *widget,
                            gpointer      user_data)
 {
-    XSetInputFocus (GDK_WINDOW_XDISPLAY (gtk_widget_get_window (widget)),
-                    GDK_WINDOW_XWINDOW (gtk_widget_get_window (widget)),
+    GdkDisplay *display;
+    GdkWindow  *window;
+
+    window = gtk_widget_get_window (widget);
+    display = gdk_window_get_display (window);
+
+    XSetInputFocus (gdk_x11_display_get_xdisplay (display),
+                    gdk_x11_window_get_xid (window),
                     RevertToPointerRoot, CurrentTime);
 }
 

@@ -116,17 +116,22 @@ static void
 _GrabKey(const guint            keycode,
          const GdkModifierType  modifiers)
 {
-    guint i;
+    GdkDisplay *display;
+    GdkWindow  *window;
+    guint       i;
 
-    XGrabKey (GDK_WINDOW_XDISPLAY (gdk_get_default_root_window ()),
+    window = gdk_get_default_root_window ();
+    display = gdk_window_get_display (window);
+
+    XGrabKey (gdk_x11_display_get_xdisplay (display),
               keycode, modifiers,
-              GDK_WINDOW_XWINDOW (gdk_get_default_root_window ()),
+              gdk_x11_window_get_xid (window),
               True, GrabModeAsync, GrabModeAsync);
 
     for (i = 0; i < G_N_ELEMENTS (ignored_modifiers); i++)
-        XGrabKey (GDK_WINDOW_XDISPLAY (gdk_get_default_root_window ()),
+        XGrabKey (gdk_x11_display_get_xdisplay (display),
                   keycode, modifiers | ignored_modifiers[i],
-                  GDK_WINDOW_XWINDOW (gdk_get_default_root_window ()),
+                  gdk_x11_window_get_xid (window),
                   True, GrabModeAsync, GrabModeAsync);
 }
 
@@ -134,16 +139,21 @@ static void
 _UngrabKey(const guint              keycode,
            const GdkModifierType    modifiers)
 {
-    guint i;
+    GdkDisplay *display;
+    GdkWindow  *window;
+    guint       i;
 
-    XUngrabKey (GDK_WINDOW_XDISPLAY (gdk_get_default_root_window ()),
+    window = gdk_get_default_root_window ();
+    display = gdk_window_get_display (window);
+
+    XUngrabKey (gdk_x11_display_get_xdisplay (display),
                 keycode, modifiers,
-                GDK_WINDOW_XWINDOW (gdk_get_default_root_window ()));
+                gdk_x11_window_get_xid (window));
 
     for (i = 0; i < G_N_ELEMENTS (ignored_modifiers); i++)
-        XUngrabKey (GDK_WINDOW_XDISPLAY (gdk_get_default_root_window ()),
+        XUngrabKey (gdk_x11_display_get_xdisplay (display),
                     keycode, modifiers | ignored_modifiers[i],
-                    GDK_WINDOW_XWINDOW (gdk_get_default_root_window ()));
+                    gdk_x11_window_get_xid (window));
 }
 
 static gboolean
@@ -228,7 +238,7 @@ lash_bind (const gchar  *string,
 
     binding = lash_key_binding_new (string, callback, user_data);
 
-    if (! _map_binding (binding, NULL))
+    if (! _map_binding (binding, gdk_keymap_get_default ()))
     {
         lash_key_binding_free (binding);
         return NULL;
