@@ -4,7 +4,6 @@
 : ${ACLOCAL:=aclocal}
 : ${AUTOCONF:=autoconf}
 : ${AUTOMAKE:=automake}
-: ${AUTOHEADER:=autoheader}
 : ${LIBTOOLIZE:=libtoolize}
 
 run()
@@ -48,6 +47,5 @@ rm -f config.cache
 run "${ACLOCAL}"
 run "${LIBTOOLIZE}" --copy --quiet
 run "${AUTOCONF}"
-run "${AUTOHEADER}"
 run "${AUTOMAKE}" --add-missing --copy --foreign
 

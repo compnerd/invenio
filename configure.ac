@@ -5,7 +5,6 @@ dnl {{{ program, version
 AC_PREREQ([2.68])
 AC_INIT([invenio], [0.0.1], [compnerd@compnerd.org])
 AC_CONFIG_AUX_DIR([config])
-AC_CONFIG_HEADERS([config/config.h])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([1.11.1 subdir-objects dist-bzip2])
 dnl }}}
