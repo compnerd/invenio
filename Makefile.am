@@ -1,6 +1,4 @@
-# vim: set ft=make ts=8 :
-
-ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
+# vim: set ft=make sw=4 sts=8 ts=8 :
 
 INCLUDES = -I src
 
@@ -47,4 +45,10 @@ src_invenio_preferences_invenio_preferences_SOURCES = src/invenio-preferences/in
 						      $(NULL)
 
 MAINTAINERCLEANFILES = aclocal.m4 configure Makefile.in
+
+maintainer-clean-local:
+	-rm -fr config
+	-rm -fr m4
+
+.PHONY: maintainer-clean-local
 
