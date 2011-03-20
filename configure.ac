@@ -2,11 +2,11 @@ dnl Copyright 2010 Saleem Abdulrasool <compnerd@compnerd.org>
 dnl vim: set sw=4 sts=4 et fdm=marker fmr={{{,}}} :
 
 dnl {{{ program, version
-AC_PREREQ(2.59)
-AC_INIT(invenio, 0.0.1, compnerd@compnerd.org)
-AC_CONFIG_AUX_DIR(config)
-AC_CONFIG_MACRO_DIR(m4)
-AM_CONFIG_HEADER(config/config.h)
+AC_PREREQ([2.68])
+AC_INIT([invenio], [0.0.1], [compnerd@compnerd.org])
+AC_CONFIG_AUX_DIR([config])
+AC_CONFIG_HEADERS([config/config.h])
+AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([1.11.1 subdir-objects dist-bzip2])
 dnl }}}
 
@@ -15,6 +15,7 @@ AC_PROG_CC_C99
 AC_PROG_CC_C_O
 AC_PROG_INSTALL
 
+LT_PREREQ([2.4])
 LT_INIT([disable-shared])
 dnl }}}
 
@@ -33,8 +34,9 @@ PKG_CHECK_MODULES(LIBWNCK, [libwnck-1.0 >= $LIBWNCK_REQUIRED])
 dnl }}}
 
 dnl {{{ output
-AM_SILENT_RULES(yes)
-AC_OUTPUT(Makefile
-          data/invenio.desktop)
+AM_SILENT_RULES([yes])
+AC_CONFIG_FILES([Makefile
+                 data/invenio.desktop])
+AC_OUTPUT
 dnl }}}
 
