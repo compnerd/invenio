@@ -16,16 +16,16 @@ src_lash_libash_la_SOURCES = src/lash/lash.c \
 			     src/lash/lash.h \
 			     $(NULL)
 
-src_libinvenio_libinvenio_la_CFLAGS = $(GTK_CFLAGS) $(GLIB_CFLAGS)
-src_libinvenio_libinvenio_la_LIBADD = $(GTK_LIBS) $(GLIB_LIBS)
+src_libinvenio_libinvenio_la_CFLAGS = $(GTK_CFLAGS)
+src_libinvenio_libinvenio_la_LIBADD = $(GTK_LIBS)
 src_libinvenio_libinvenio_la_SOURCES = src/libinvenio/invenio-category.c        \
 				       src/libinvenio/invenio-category.h        \
 				       src/libinvenio/invenio-configuration.c   \
 				       src/libinvenio/invenio-configuration.h   \
 				       $(NULL)
 
-src_invenio_invenio_CFLAGS = $(GTK_CFLAGS) $(GLIB_CFLAGS) $(TRACKER_CFLAGS) $(LIBWNCK_CFLAGS) -DWNCK_I_KNOW_THIS_IS_UNSTABLE
-src_invenio_invenio_LDADD = $(GTK_LIBS) $(GLIB_LIBS) $(TRACKER_LIBS) $(LIBWNCK_LIBS) src/lash/libash.la src/libinvenio/libinvenio.la
+src_invenio_invenio_CFLAGS = $(GTK_CFLAGS) $(TRACKER_CFLAGS) $(LIBWNCK_CFLAGS) -DWNCK_I_KNOW_THIS_IS_UNSTABLE
+src_invenio_invenio_LDADD = $(GTK_LIBS) $(TRACKER_LIBS) $(LIBWNCK_LIBS) src/lash/libash.la src/libinvenio/libinvenio.la
 src_invenio_invenio_SOURCES = src/invenio/invenio.c               \
 			      src/invenio/invenio-query.c         \
 			      src/invenio/invenio-query.h         \
@@ -37,8 +37,8 @@ src_invenio_invenio_SOURCES = src/invenio/invenio.c               \
 			      src/invenio/invenio-status-icon.h   \
 			      $(NULL)
 
-src_invenio_preferences_invenio_preferences_CFLAGS = $(GTK_CFLAGS) $(GLIB_CFLAGS)
-src_invenio_preferences_invenio_preferences_LDADD = $(GTK_LIBS) $(GLIB_LIBS) src/libinvenio/libinvenio.la
+src_invenio_preferences_invenio_preferences_CFLAGS = $(GTK_CFLAGS)
+src_invenio_preferences_invenio_preferences_LDADD = $(GTK_LIBS) src/libinvenio/libinvenio.la
 src_invenio_preferences_invenio_preferences_SOURCES = src/invenio-preferences/invenio-preferences.c            \
 						      src/invenio-preferences/invenio-preferences-dialog.c     \
 						      src/invenio-preferences/invenio-preferences-dialog.h     \
